@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "645599191590",
+    "firebase_url": "https://ev-charging-paltform-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "ev-charging-paltform",
+    "storage_bucket": "ev-charging-paltform.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:645599191590:android:bae8a2a3821fe3f380fce7",
+        "android_client_info": {
+          "package_name": "com.example.multi_page_ev_charge"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAnO7e754kVBLC1V-t4QXiIceBI5_HKOrg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
