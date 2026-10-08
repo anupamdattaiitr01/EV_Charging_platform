@@ -15,8 +15,10 @@ class _login_pageState extends State<login_page> {
   final TextEditingController _phoneController = TextEditingController();
   String number_ent = "";
   String full_number = "";
+  // This helps in the mistype of the same string again and again
+  static const String _phoneKey = 'savedPhone';
 
-
+  // Fire base auth Code that helps to get the OTP from fire base and send it to the user
   Future<void> sendOTP(String phoneNumber) async {
 
     await FirebaseAuth.instance.verifyPhoneNumber(
@@ -48,10 +50,13 @@ class _login_pageState extends State<login_page> {
   }
 
   Future<void> _loadSavedPhoneNumber() async {
+    // This establishes connection with the hard disc
+    // So this  function is called in the init even before loading the page
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? savedPhone = prefs.getString('savedPhone');
+    String? savedPhone = prefs.getString(_phoneKey);
 
-    if (savedPhone != null) {
+    if (savedPhone != null)
+    {
       setState(() {
         number_ent = savedPhone;
         _phoneController.text = savedPhone; // Visually fills the text box
@@ -152,15 +157,17 @@ class _login_pageState extends State<login_page> {
 
                           if (cleanNumber.length == 10) {
                             try {
+                              // Connection call
                               final SharedPreferences prefs = await SharedPreferences.getInstance();
-                              await prefs.setString('savedPhone', cleanNumber);
+                              // Ensuring typesafety by using _phoneKey
+                              await prefs.setString(_phoneKey, cleanNumber);
 
                               if (!context.mounted) return;
+
 
                               // this is the function that is triggered when user
                               // enters the phone number
                               // this function again call a fucntion ---- verify_number ();
-
                               await sendOTP(full_number.isNotEmpty ? full_number : "+91$cleanNumber");
 
                               // // 3. MANDATORY FLUTTER CHECK: Ensure the screen still exists after the await
@@ -173,14 +180,16 @@ class _login_pageState extends State<login_page> {
                               //     builder: (context) => otp_page(),
                               //   ),
                               // );
-                            } catch (e) {
+                            }
+                            catch (e) {
                               // If storage fails, show the error on screen
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text("Storage Error: $e")),
                               );
                             }
                           } else {
-                            // SHOW VISUAL ERROR ON SCREEN (Instead of just the debug console)
+                            // Show the visual error
+
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text("Invalid! Number length is ${cleanNumber.length}, needs to be 10."),
