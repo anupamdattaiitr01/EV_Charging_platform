@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:multi_page_ev_charge/getstarted_page.dart';
 import 'firebase_options.dart';
+import 'wallet_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
@@ -19,7 +21,12 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => WalletProvider(),
+      child: const MyApp(),
+    ), // Closes ChangeNotifierProvider
+  );
 }
 
 class MyApp extends StatelessWidget {

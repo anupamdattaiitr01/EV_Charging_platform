@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:multi_page_ev_charge/dash_board.dart';
+import 'package:provider/provider.dart';
+import 'wallet_provider.dart';
 
 class home_page extends StatefulWidget {
   const home_page({super.key, required this.title});
@@ -33,6 +35,7 @@ class _home_pageState extends State<home_page> {
 
   @override
   Widget build(BuildContext context) {
+    print ("Built function is called for the home page");
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A0A),
       body: Stack(
@@ -88,6 +91,48 @@ class _home_pageState extends State<home_page> {
                       ),
                     ),
                     const SizedBox(height: 40),
+
+                    const SizedBox(height: 24),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF161B22),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.greenAccent, width: 1),
+                      ),
+                      child: Column(
+                        children: [
+                          const Text("Provider Sandbox", style: TextStyle(color: Colors.white54)),
+                          const SizedBox(height: 8),
+
+
+                          Consumer<WalletProvider>(
+                            builder: (context, wallet, child) {
+                              print ('Cosumer reload!');
+                              return Text(
+                                "Wallet Balance: ₹${wallet.balance}",
+                                style: const TextStyle(
+                                    fontSize: 24,
+                                    color: Colors.greenAccent,
+                                    fontWeight: FontWeight.bold
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+
+                          ElevatedButton(
+                            onPressed: () {
+                              Provider.of<WalletProvider>(context, listen: false).addFunds(100);
+                            },
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                            child: const Text("Add ₹100", style: TextStyle(color: Colors.white)),
+                          ),
+                        ],
+                      ),
+                    ),
 
                     const Text(
                         "Brand",

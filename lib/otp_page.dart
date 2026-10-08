@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:multi_page_ev_charge/home_page.dart';
 import 'package:pinput/pinput.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'user_details_page.dart';
+import 'package:multi_page_ev_charge/home_page.dart';
+import 'package:multi_page_ev_charge/user_details_page.dart';
+
 
 class otp_page extends StatefulWidget {
+  // this is the additional verification code that is required to check the OTP entered
+  // pass on from the log in page from the Firebase
   final String verificationId;
   const otp_page({super.key, required this.verificationId});
   @override
