@@ -13,6 +13,8 @@ class login_page extends StatefulWidget {
 class _login_pageState extends State<login_page> {
 
   final TextEditingController _phoneController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>(); // 1. ADD THIS LINE
+
   String number_ent = "";
   String full_number = "";
   // This helps in the mistype of the same string again and again
@@ -87,137 +89,131 @@ class _login_pageState extends State<login_page> {
               ),
             ),
           ),
+
           Center(
             child: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: 100),
-                    Text(
-                      "Welcome Back!",
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      "Sign In To Continue Charging Your EV Vehicle",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white70,
-                      ),
-                    ),
-                    SizedBox(height: 40),
-
-                    IntlPhoneField(
-                      controller: _phoneController,
-
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: const Color(0xFF161B22),
-                        hintText: 'Enter your Phone Number',
-                        hintStyle: TextStyle(color: Colors.white38),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide.none,
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 100),
+                      Text(
+                        "Welcome Back!",
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
+                      SizedBox(height: 8),
+                      Text(
+                        "Sign In To Continue Charging Your EV Vehicle",
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white70,
+                        ),
+                      ),
+                      SizedBox(height: 40),
 
-                      style: TextStyle(color: Colors.white),
-                      dropdownTextStyle: TextStyle(color: Colors.white),
-                      initialCountryCode: 'IN',
+                      IntlPhoneField(
+                        controller: _phoneController,
 
-                      keyboardType: TextInputType.phone,
-
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      onChanged: (phone) {
-                        number_ent = phone.number;
-                        full_number = phone.completeNumber;
-                      },
-                      onSubmitted: (phone) {
-                      },
-                    ),
-
-                    SizedBox(height: 24),
-
-                    SizedBox(
-                      width: double.infinity,
-                      height: 55,
-
-                      child: ElevatedButton(
-
-                        onPressed: () async {
-                          String cleanNumber = number_ent.replaceAll(' ', '');
-
-                          if (cleanNumber.length == 10) {
-                            try {
-                              // Connection call
-                              final SharedPreferences prefs = await SharedPreferences.getInstance();
-                              // Ensuring typesafety by using _phoneKey
-                              await prefs.setString(_phoneKey, cleanNumber);
-
-                              if (!context.mounted) return;
-
-
-                              // this is the function that is triggered when user
-                              // enters the phone number
-                              // this function again call a fucntion ---- verify_number ();
-                              await sendOTP(full_number.isNotEmpty ? full_number : "+91$cleanNumber");
-
-                              // // 3. MANDATORY FLUTTER CHECK: Ensure the screen still exists after the await
-                              // if (!context.mounted) return;
-
-                              // // 4. Navigate to OTP Page
-                              // Navigator.push(
-                              //   context,
-                              //   MaterialPageRoute(
-                              //     builder: (context) => otp_page(),
-                              //   ),
-                              // );
-                            }
-                            catch (e) {
-                              // If storage fails, show the error on screen
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text("Storage Error: $e")),
-                              );
-                            }
-                          } else {
-                            // Show the visual error
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text("Invalid! Number length is ${cleanNumber.length}, needs to be 10."),
-                                backgroundColor: Colors.redAccent,
-                              ),
-                            );
+                        // Validator function of the child class
+                        validator: (phone) {
+                          if (phone == null || phone.number.isEmpty) {
+                            return 'Please enter your phone number';
                           }
+                          String cleanNumber = phone.number.replaceAll(' ', '');
+                          if (cleanNumber.length != 10) {
+                            return 'Please enter exactly 10 digits';
+                          }
+                          return null;
                         },
-                        style: ElevatedButton.styleFrom(
 
-                          backgroundColor: const Color(0xFF2563EB),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: const Color(0xFF161B22),
+                          hintText: 'Enter your Phone Number',
+                          hintStyle: TextStyle(color: Colors.white38),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
                           ),
                         ),
-                        child: Text(
-                          "Send OTP!",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+
+                        style: TextStyle(color: Colors.white),
+                        dropdownTextStyle: TextStyle(color: Colors.white),
+                        initialCountryCode: 'IN',
+
+                        keyboardType: TextInputType.phone,
+
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        onChanged: (phone) {
+                          number_ent = phone.number;
+                          full_number = phone.completeNumber;
+                        },
+                        onSubmitted: (phone) {
+                        },
+                      ),
+
+                      SizedBox(height: 24),
+
+                      SizedBox(
+                        width: double.infinity,
+                        height: 55,
+
+                        child: ElevatedButton(
+
+                          //
+                          onPressed: () async {
+                              // trigger the validator function of all the child class in the form widget
+                              if (_formKey.currentState!.validate()) {
+
+                                try {
+                                  String cleanNumber = number_ent.replaceAll(' ', '');
+                                  final SharedPreferences prefs = await SharedPreferences.getInstance();
+                                  await prefs.setString(_phoneKey, cleanNumber);
+
+                                  if (!context.mounted) return;
+
+                                  await sendOTP(full_number.isNotEmpty ? full_number : "+91$cleanNumber");
+
+                                }
+                                catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text("Storage Error: $e")),
+                                  );
+                                }
+
+                                // Implementing the try catch block is better than using the if else statements
+                              }
+                          },
+                          style: ElevatedButton.styleFrom(
+
+                            backgroundColor: const Color(0xFF2563EB),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            "Send OTP!",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    SizedBox(height: 24),
-                    Spacer(),
-                  ],
+                      SizedBox(height: 24),
+                      Spacer(),
+                    ],
+                  ),
                 ),
               ),
             ),
