@@ -58,17 +58,23 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
 
       if (!mounted) return;
 
-      if (widget.isEditing) {
+      if (widget.isEditing)
+      {
         Navigator.pop(context);
-      } else {
+      }
+      else
+      {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const home_page(title: "Select your EV")),
         );
       }
-    } catch (e) {
+    }
+    catch (e)
+    {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
-    } finally {
+    } finally
+    {
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -104,54 +110,71 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A0A),
-      appBar: AppBar(
+      appBar:
+      AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(widget.isEditing ? "Edit Profile" : "Complete Profile", style: const TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text("User Details", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
-                const SizedBox(height: 8),
-                Text(
-                  widget.isEditing ? "Update your personal information below." : "Please provide your details to continue.",
-                  style: const TextStyle(color: Colors.white70, fontSize: 16),
-                ),
-                const SizedBox(height: 32),
 
-                _buildTextField(_nameController, "Full Name (Required)", isRequired: true),
-                _buildTextField(_phoneController, "Phone Number", isPhone: true),
-                _buildTextField(_dlController, "Driving License (DL) Number"),
-                _buildTextField(_addressController, "Full Address"),
-                _buildTextField(_extraController, "Additional Information (Optional)"),
-
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 55,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _submitData,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : Text(widget.isEditing ? "Update Details" : "Save & Continue",
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                  ),
-                ),
-              ],
+      body: Stack(
+        children: [
+          Opacity(
+            opacity: 0.5,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(30.0),
+              child: Image.asset(
+                'assets/images/Ellipse1.png',
+                width: 600,
+                height: 600,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
-        ),
+          SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("User Details", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
+                  const SizedBox(height: 8),
+                  Text(
+                    widget.isEditing ? "Update your personal information below." : "Please provide your details to continue.",
+                    style: const TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                  const SizedBox(height: 32),
+
+                  _buildTextField(_nameController, "Full Name (Required)", isRequired: true),
+                  _buildTextField(_phoneController, "Phone Number", isPhone: true),
+                  _buildTextField(_dlController, "Driving License (DL) Number"),
+                  _buildTextField(_addressController, "Full Address"),
+                  _buildTextField(_extraController, "Additional Information (Optional)"),
+
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 55,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _submitData,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : Text(widget.isEditing ? "Update Details" : "Save & Continue",
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),]
       ),
     );
   }

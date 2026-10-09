@@ -13,6 +13,15 @@ class home_page extends StatefulWidget {
 }
 
 class _home_pageState extends State<home_page> {
+  // String declaration to reduce the silent Error in the code
+  // These are all the keys that are declared to ensure the mistype of the key string
+  // This avoids the silent injestion of the error in the code
+
+  static const String _brandKey = 'car_brand';
+  static const String _modelKey = 'car_model';
+  static const String _connectorKey = 'car_connector';
+
+  // these are the values
   String? selectedBrand;
   String? selectedModel;
   String? selectedConnector;
@@ -20,6 +29,7 @@ class _home_pageState extends State<home_page> {
   @override
   void initState() {
   super.initState();
+  // This is loaded only once when the page is loaded
   _loadSavedVehicle();
   }
 
@@ -27,9 +37,9 @@ class _home_pageState extends State<home_page> {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
 
   setState(() {
-  selectedBrand = prefs.getString('car_brand');
-  selectedModel = prefs.getString('car_model');
-  selectedConnector = prefs.getString('car_connector');
+    selectedBrand = prefs.getString(_brandKey);
+    selectedModel = prefs.getString(_modelKey);
+    selectedConnector = prefs.getString(_connectorKey);
   });
   }
 
@@ -79,7 +89,9 @@ class _home_pageState extends State<home_page> {
                                 color: Colors.white
                             ),
                           ),
+
                           const SizedBox(height: 8),
+
                           const Text(
                             "Select Your Car Details To Find Compatible Chargers Near You",
                             style: TextStyle(
@@ -92,60 +104,69 @@ class _home_pageState extends State<home_page> {
                     ),
                     const SizedBox(height: 40),
 
+                    // --------------------
+                    // Consumer Method of the provider
+
+
                     // const SizedBox(height: 24),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF161B22),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.greenAccent, width: 1),
-                      ),
-                      child: Column(
-                        children: [
-                          const Text("Provider Sandbox", style: TextStyle(color: Colors.white54)),
-                          const SizedBox(height: 8),
-
-
-                          Consumer<WalletProvider>(
-                            builder: (context, wallet, child) {
-                              print ('Cosumer reload!');
-                              return Text(
-                                "Wallet Balance: ₹${wallet.balance}",
-                                style: const TextStyle(
-                                    fontSize: 24,
-                                    color: Colors.greenAccent,
-                                    fontWeight: FontWeight.bold
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 16),
-
-
-                          ElevatedButton(
-                            onPressed: () {
-                              Provider.of<WalletProvider>(context, listen: false).addFunds(100);
-                            },
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                            child: const Text("Add ₹100", style: TextStyle(color: Colors.white)),
-                          ),
-                        ],
-                      ),
-                    ),
+                    // Container(
+                    //   width: double.infinity,
+                    //   padding: const EdgeInsets.all(16),
+                    //   decoration: BoxDecoration(
+                    //     color: const Color(0xFF161B22),
+                    //     borderRadius: BorderRadius.circular(12),
+                    //     border: Border.all(color: Colors.greenAccent, width: 1),
+                    //   ),
+                    //   child: Column(
+                    //     children: [
+                    //       const Text("Provider Sandbox", style: TextStyle(color: Colors.white54)),
+                    //       const SizedBox(height: 8),
+                    //
+                    //
+                    //       Consumer<WalletProvider>(
+                    //         builder: (context, wallet, child) {
+                    //           print ('Cosumer reload!');
+                    //           return Text(
+                    //             "Wallet Balance: ₹${wallet.balance}",
+                    //             style: const TextStyle(
+                    //                 fontSize: 24,
+                    //                 color: Colors.greenAccent,
+                    //                 fontWeight: FontWeight.bold
+                    //             ),
+                    //           );
+                    //         },
+                    //       ),
+                    //       const SizedBox(height: 16),
+                    //
+                    //
+                    //       ElevatedButton(
+                    //         onPressed: () {
+                    //           Provider.of<WalletProvider>(context, listen: false).addFunds(100);
+                    //         },
+                    //         style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    //         child: const Text("Add ₹100", style: TextStyle(color: Colors.white)),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
 
                     const SizedBox(height: 40),
+
                     const Text(
                         "Brand",
                         style: TextStyle(color: Colors.white70, fontSize: 18, fontWeight: FontWeight.bold)
                     ),
                     const SizedBox(height: 8),
+
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF161B22), // Dark grey box
+
+                      decoration:
+                      BoxDecoration(
+                        color: const Color(0xFF161B22),
                         borderRadius: BorderRadius.circular(12),
                       ),
+
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           isExpanded: true,
@@ -158,12 +179,14 @@ class _home_pageState extends State<home_page> {
                           value: selectedBrand,
                           style: const TextStyle(color: Colors.white, fontSize: 16),
                           items: <String>['Tata', 'MG', 'Hyundai', 'Mahindra']
-                              .map((String value) {
+                              .map((String value)
+                          {
                             return DropdownMenuItem<String>(
                               value: value,
                               child: Text(value),
                             );
                           }).toList(),
+
                           onChanged: (newValue) {
                             setState(() {
                               selectedBrand = newValue;
@@ -173,6 +196,7 @@ class _home_pageState extends State<home_page> {
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 24),
 
                     const Text(
@@ -180,7 +204,9 @@ class _home_pageState extends State<home_page> {
                         style: TextStyle(color: Colors.white70, fontSize: 18, fontWeight: FontWeight.bold)
                     ),
                     const SizedBox(height: 8),
-                    Container(
+
+                    Container
+                      (
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                       decoration: BoxDecoration(
                         color: const Color(0xFF161B22),
@@ -212,6 +238,7 @@ class _home_pageState extends State<home_page> {
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 32),
 
                     const Text(
@@ -222,11 +249,14 @@ class _home_pageState extends State<home_page> {
                             fontSize: 16
                         )
                     ),
+
                     const SizedBox(height: 4),
+
                     const Text(
                       "Choose The Charging Port Supported By Your Car.",
                       style: TextStyle(color: Colors.white54, fontSize: 13),
                     ),
+
                     const SizedBox(height: 16),
 
                     Row(
@@ -263,6 +293,7 @@ class _home_pageState extends State<home_page> {
                             ),
                           ),
                         ),
+
                         const SizedBox(width: 16),
 
                         Expanded(
@@ -297,6 +328,7 @@ class _home_pageState extends State<home_page> {
                             ),
                           ),
                         ),
+
                       ],
                     ),
                     const SizedBox(height: 40),
@@ -305,13 +337,20 @@ class _home_pageState extends State<home_page> {
                       width: double.infinity,
                       height: 55,
                       child: ElevatedButton(
+                        // Whole logic of setting the values in the shared preference
+                        // If the value is already there we can easily update that using """ SET METHOD """
+                        // There is not separate update method in the shared Preference
+                        // Set does --- > UPDATE + SETTING New values
 
                         onPressed: () async{
                           if (selectedBrand != null && selectedModel != null && selectedConnector != null) {
+                            // Establishing Connection with the shared preference channel
+
                             final SharedPreferences prefs = await SharedPreferences.getInstance();
-                            await prefs.setString('car_brand', selectedBrand!);
-                            await prefs.setString('car_model', selectedModel!);
-                            await prefs.setString('car_connector', selectedConnector!);
+                            await prefs.setString(_brandKey, selectedBrand!);
+                            await prefs.setString(_modelKey, selectedModel!);
+                            await prefs.setString(_connectorKey, selectedConnector!);
+
                             if (context.mounted) {
                               Navigator.pushReplacement(
                                 context,
@@ -321,7 +360,8 @@ class _home_pageState extends State<home_page> {
                               );
                             }
 
-                          } else {
+                          }
+                          else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text("Please select all vehicle details"),

@@ -114,7 +114,7 @@ class _getstarted_pageState extends State<getstarted_page> {
                         onPressed: () {
                           _pageController.animateToPage(
                             2,
-                            duration: const Duration(milliseconds: 1500),
+                            duration: const Duration(milliseconds: 700),
                             curve: Curves.easeInOut,
                           );
                         },
