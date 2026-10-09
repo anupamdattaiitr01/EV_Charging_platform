@@ -92,7 +92,7 @@ class _home_pageState extends State<home_page> {
                     ),
                     const SizedBox(height: 40),
 
-                    const SizedBox(height: 24),
+                    // const SizedBox(height: 24),
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
@@ -134,6 +134,7 @@ class _home_pageState extends State<home_page> {
                       ),
                     ),
 
+                    const SizedBox(height: 40),
                     const Text(
                         "Brand",
                         style: TextStyle(color: Colors.white70, fontSize: 18, fontWeight: FontWeight.bold)

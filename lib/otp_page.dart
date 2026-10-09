@@ -10,6 +10,10 @@ import 'package:multi_page_ev_charge/user_details_page.dart';
 class otp_page extends StatefulWidget {
   // this is the additional verification code that is required to check the OTP entered
   // pass on from the log in page from the Firebase
+  // Only the OTP code is useless, because multiple users may get the same OTP code
+  // So we need an additional check that is passed on from the log in page
+  // as soon as the code trigger to send OTP to user
+
   final String verificationId;
   const otp_page({super.key, required this.verificationId});
   @override
@@ -23,6 +27,7 @@ class _otp_pageState extends State<otp_page> {
   String enteredOtp = "";
   bool _isLoading = false;
 
+  // The whole OTP validation part
   Future<void> _verifyOtp() async {
     setState(() => _isLoading = true);
     // this is the start of the verification process
@@ -45,12 +50,14 @@ class _otp_pageState extends State<otp_page> {
       if (!mounted) return;
 
       if (event.snapshot.exists) {
+        // If this is the first time user then we will move the user directly to the home page
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const home_page(title: "Select your EV")),
         );
       } else {
-        // New User: No data exists, route to form
+        // New user now move the user to the user profile page to put in the required details
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const UserDetailsPage()),
@@ -63,13 +70,44 @@ class _otp_pageState extends State<otp_page> {
         SnackBar(
           content: Text("Error: $e"),
           backgroundColor: Colors.redAccent,
-          duration: const Duration(seconds: 4), // Keeps it on screen long enough to read
+          duration: const Duration(seconds: 4),
         ),
       );
     }
     finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  // this is the function that helps to first validate the OTP
+  // and then authenticating with the firebase
+
+  void _handleVerifySubmit() {
+    if (_formKey.currentState!.validate()) {
+      _verifyOtp();
+    }
+  }
+
+  // returns the UI based on the condition
+  Widget _buildButtonChild() {
+    // already clicked the button and the firebase is checking in the background
+    if (_isLoading) {
+      return const SizedBox(
+        height: 20,
+        width: 20,
+        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+      );
+    }
+
+    // If not loading, show the normal text
+    return const Text(
+      "Verify & Continue",
+      style: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+    );
   }
 
   @override
@@ -79,7 +117,7 @@ class _otp_pageState extends State<otp_page> {
         height: 60,
         textStyle: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.w600),
         decoration: BoxDecoration(
-          color: const Color(0xFF161B22), // Your dark grey box color
+          color: const Color(0xFF161B22),
           borderRadius: BorderRadius.circular(12),
         ),
     );
@@ -103,8 +141,11 @@ class _otp_pageState extends State<otp_page> {
                 ),
               ),
             ),
-            SafeArea(child: Padding(
+
+            SafeArea(child:
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
+
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -132,7 +173,8 @@ class _otp_pageState extends State<otp_page> {
 
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [Pinput(
+                        children: [
+                          Pinput(
                           length: 6,
                           defaultPinTheme: defaultPinTheme,
 
@@ -169,88 +211,24 @@ class _otp_pageState extends State<otp_page> {
                         width: double.infinity,
                         height: 55,
                         child: ElevatedButton(
-                          // onPressed: () {
-                          //   bool pos1 = true;
-                          //   for (int i=0;i<enteredOtp.length;i++)
-                          //     {
-                          //       int code = enteredOtp.codeUnitAt(i);
-                          //       // print (code);
-                          //       if (code <48 || code > 57)
-                          //         {
-                          //           pos1 = false;
-                          //           break;
-                          //         }
-                          //     }
-                          //   // print (pos1);
-                          //   if (enteredOtp.length ==6 && pos1)
-                          //     {
-                          //       print ('The OTP You entered is $enteredOtp');
-                          //       Navigator.pushReplacement(
-                          //         context,
-                          //         MaterialPageRoute(
-                          //           builder: (context) => home_page(title: "Select your EV"),
-                          //         ),
-                          //       );
-                          //     }
-                          //   else
-                          //     {
-                          //       print('The wrong OTP you entered is $enteredOtp');
-                          //       print ("The OTP entered is not Valid!");
-                          //     }
-                          // },
-                          // onPressed: () {
-                          //   if (_formKey.currentState!.validate()) {
-                          //
-                          //     print('The OTP You entered is Correct');
-                          //     Navigator.pushReplacement(
-                          //       context,
-                          //       MaterialPageRoute(
-                          //         builder: (context) => home_page(title: "Select your EV"),
-                          //       ),
-                          //     );
-                          //
-                          //   } else {
-                          //     print("The OTP entered is not Valid!");
-                          //   }
-                          // },
-                          onPressed: _isLoading
-                              ? null
-                              : () {
-                            if (_formKey.currentState!.validate()) {
-                              _verifyOtp();
-                            }
-                          },
-                          child: _isLoading
-                              ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                          )
-                              : const Text(
-                            "Verify & Continue",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+
+                          // Additional chek for the is_loading check
+                          onPressed: _isLoading ? null : _handleVerifySubmit,
 
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2563EB), // Brand Blue
+                            backgroundColor: const Color(0xFF2563EB),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          // child: Text(
-                          //   "Verify & Continue",
-                          //   style: TextStyle(
-                          //     fontSize: 16,
-                          //     fontWeight: FontWeight.bold,
-                          //     color: Colors.white,
-                          //   ),
-                          // ),
+
+                          // Calling the Custom Widget to get the hold of the cleaner UI,
+                          // It returns the UI based on the condition'
+                          child: _buildButtonChild(),
+
                         ),
                       ),
+
                       SizedBox(height: 24),
 
                       Center(
