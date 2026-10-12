@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:multi_page_ev_charge/login_page.dart';
 
+// Widget Class that is created and deleted again and again
+// Light weight Blue print
 class getstarted_page extends StatefulWidget {
   // this is the immutable class,
   // this is the widget that is build again and again when we change the state or loads the program
 
   @override
   State<getstarted_page> createState() => _getstarted_pageState();
+  // this CreateState() method is called only once when the first birth occurs
+  // When something in the state changes it is not called again as the state object is already there in the memory
 }
 
+
+// State Object that persist through the memory
 class _getstarted_pageState extends State<getstarted_page> {
   // this is the indesteructable claas that can store the details that are persistent
 
@@ -38,10 +44,10 @@ class _getstarted_pageState extends State<getstarted_page> {
   //   },
   // ];
 
-  // the New inbuult custom data class list
+  // the New inbuilt custom data class list
   // it ensures type safety
   // introduces null safety
-
+  // Prevents accidental mistype of the variable names
   final List<OnboardingContent> onboardingData = [
     const OnboardingContent(
       image: 'assets/images/Car.png',
@@ -103,8 +109,12 @@ class _getstarted_pageState extends State<getstarted_page> {
 
           SafeArea(
             // Safe Area that contains all the details and the button
+            // this widget helps to keep the content out of the notch and
+            // keeps the content intact and presentable
             child: Column(
               children: [
+
+                // Skip Button is present only in first and second page
                 if (curr_ind < 2)
                   Align(
                     alignment: Alignment.topRight,
@@ -114,7 +124,7 @@ class _getstarted_pageState extends State<getstarted_page> {
                         onPressed: () {
                           _pageController.animateToPage(
                             2,
-                            duration: const Duration(milliseconds: 700),
+                            duration: const Duration(milliseconds: 500),
                             curve: Curves.easeInOut,
                           );
                         },
@@ -135,6 +145,8 @@ class _getstarted_pageState extends State<getstarted_page> {
                     physics: BouncingScrollPhysics(),
                     controller: _pageController,
                     itemCount: onboardingData.length,
+
+                    // changing the current state of the index
                     onPageChanged: (int index) {
                       setState(() {
                         curr_ind = index;
@@ -142,6 +154,7 @@ class _getstarted_pageState extends State<getstarted_page> {
                       });
                       // curr_ind = index;
                     },
+
                     itemBuilder: (context, index) {
                       // print ('Current index of the page is $index');
                       return Padding(
@@ -154,13 +167,14 @@ class _getstarted_pageState extends State<getstarted_page> {
                             Transform.translate(
                               offset: const Offset(0, 70),
                               child: Image.asset(
-                                onboardingData[index].image!,
+                                onboardingData[index].image,
                                 height: 250,
                               ),
                             ),
                             SizedBox(height: 40),
+
                             Text(
-                              onboardingData[index].title!,
+                              onboardingData[index].title,
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 26,
@@ -169,8 +183,9 @@ class _getstarted_pageState extends State<getstarted_page> {
                               ),
                             ),
                             SizedBox(height: 16),
+
                             Text(
-                              onboardingData[index].subtitle!,
+                              onboardingData[index].subtitle,
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 16,
@@ -190,6 +205,8 @@ class _getstarted_pageState extends State<getstarted_page> {
                   child: Column(
                     children: [
 
+                      // this is shown only in the last page of the get started page
+                      // Divert the page to the log in page
                       if (curr_ind == 2) ...[
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -203,6 +220,8 @@ class _getstarted_pageState extends State<getstarted_page> {
                                   borderRadius: BorderRadius.circular(15),
                                 ),
                               ),
+
+                              // Navigation to the log in page
                               onPressed: () {
                                 Navigator.push(
                                   context,

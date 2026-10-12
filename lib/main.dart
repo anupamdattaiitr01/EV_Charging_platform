@@ -13,7 +13,6 @@ void main() async {
   // Also present in the runApp function
   // done to establish connection before calling runApp
   // So that Firebase connection is made securely
-
   WidgetsFlutterBinding.ensureInitialized();
 
   //tells the app exactly to which online database to talk to when we requested an authentication process
