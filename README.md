@@ -33,8 +33,3 @@ Follow these steps to set up and run the project locally on your machine.
 *   An active **Google Cloud Console** account with the following APIs enabled:
     *   Maps SDK for Android / iOS
     *   Routes API (V2)
-
-### 2. Clone the Repository
-```bash
-git clone [https://github.com/your-username/ev-charging-app.git](https://github.com/your-username/ev-charging-app.git)
-cd ev-charging-app
