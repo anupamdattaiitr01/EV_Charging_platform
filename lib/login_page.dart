@@ -13,10 +13,11 @@ class login_page extends StatefulWidget {
 class _login_pageState extends State<login_page> {
 
   final TextEditingController _phoneController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>(); // 1. ADD THIS LINE
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   String number_ent = "";
   String full_number = "";
+
   // This helps in the mistype of the same string again and again
   static const String _phoneKey = 'savedPhone';
 
@@ -99,6 +100,7 @@ class _login_pageState extends State<login_page> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+
                       SizedBox(height: 100),
                       Text(
                         "Welcome Back!",
@@ -108,6 +110,7 @@ class _login_pageState extends State<login_page> {
                           color: Colors.white,
                         ),
                       ),
+
                       SizedBox(height: 8),
                       Text(
                         "Sign In To Continue Charging Your EV Vehicle",
@@ -116,8 +119,8 @@ class _login_pageState extends State<login_page> {
                           color: Colors.white70,
                         ),
                       ),
-                      SizedBox(height: 40),
 
+                      SizedBox(height: 40),
                       IntlPhoneField(
                         controller: _phoneController,
 
@@ -148,11 +151,14 @@ class _login_pageState extends State<login_page> {
                         dropdownTextStyle: TextStyle(color: Colors.white),
                         initialCountryCode: 'IN',
 
+                        // Strictly restricts the phone numpad to open up not the keyboard
                         keyboardType: TextInputType.phone,
 
+                        // Only numbers are allowed in the input
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                         ],
+
                         onChanged: (phone) {
                           number_ent = phone.number;
                           full_number = phone.completeNumber;
@@ -162,7 +168,6 @@ class _login_pageState extends State<login_page> {
                       ),
 
                       SizedBox(height: 24),
-
                       SizedBox(
                         width: double.infinity,
                         height: 55,

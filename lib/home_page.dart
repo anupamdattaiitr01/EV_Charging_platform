@@ -71,6 +71,7 @@ class _home_pageState extends State<home_page> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+
                     Center(
                       child: Column(
                         children: [
@@ -151,7 +152,6 @@ class _home_pageState extends State<home_page> {
                     // ),
 
                     const SizedBox(height: 40),
-
                     const Text(
                         "Brand",
                         style: TextStyle(color: Colors.white70, fontSize: 18, fontWeight: FontWeight.bold)
@@ -198,7 +198,6 @@ class _home_pageState extends State<home_page> {
                     ),
 
                     const SizedBox(height: 24),
-
                     const Text(
                         "Model",
                         style: TextStyle(color: Colors.white70, fontSize: 18, fontWeight: FontWeight.bold)
@@ -240,7 +239,6 @@ class _home_pageState extends State<home_page> {
                     ),
 
                     const SizedBox(height: 32),
-
                     const Text(
                         "Connector Type",
                         style: TextStyle(
@@ -251,7 +249,6 @@ class _home_pageState extends State<home_page> {
                     ),
 
                     const SizedBox(height: 4),
-
                     const Text(
                       "Choose The Charging Port Supported By Your Car.",
                       style: TextStyle(color: Colors.white54, fontSize: 13),
@@ -295,7 +292,6 @@ class _home_pageState extends State<home_page> {
                         ),
 
                         const SizedBox(width: 16),
-
                         Expanded(
                           child: GestureDetector(
                             onTap: () {
