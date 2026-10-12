@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'map_page.dart';
 import 'select_gun_page.dart';
 import 'charging_progress_page.dart';
 import 'charging_summary_page.dart';
@@ -15,109 +17,95 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  // this vehicle name is updated from the Shared Preference
+  // Helps in the easier and faster loading of the details from the local memory
   String vehicleName = "Loading Vehicle...";
   int _selectedNavIndex = 0;
-  late PageController _pageController;
+
+  final Set<int> _loadedIndices = {0};
   bool _isCharging = false;
 
   @override
   void initState() {
+    print ('Init State of the Dashboard Page is called!');
     super.initState();
     _loadVehicleDetails();
-    _pageController = PageController(initialPage: _selectedNavIndex);
   }
 
   @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
+  // Shared Preference Variable details
+  // Getting the values to display on the dashbaord page
   Future<void> _loadVehicleDetails() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String brand = prefs.getString('car_brand') ?? "Tata";
     final String model = prefs.getString('car_model') ?? "Nexon EV";
-
-    final Set<String> allKeys = prefs.getKeys();
-    print("=== SharedPreferences Storage ===");
-    for (String key in allKeys) {
-      // Retrieves the dynamic value for each specific key
-      final value = prefs.get(key);
-      print("$key : $value");
-    }
-    print("=================================");print("Currently stored keys: $allKeys");
 
     setState(() {
       vehicleName = "$brand $model";
     });
   }
 
-  Widget _buildBody() {
-    return PageView(
-      controller: _pageController,
-      physics: const NeverScrollableScrollPhysics(),
-      children: [
-        _buildHomeView(),
+  List<Widget Function()> get _pageBuilders => [
+    // 0: Home
+        () => _buildHomeView(),
 
-        // Map Tab (Index 1): Switches between Select Gun and Charging Progress
-        // Map Tab (Index 1): Switches between Select Gun and Charging Progress
-        _isCharging
-            ? ChargingProgressPage(
-          onStopCharging: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ChargingSummaryPage(),
-              ),
-            ).then((_) {
-              setState(() {
-                _isCharging = false;
-                _selectedNavIndex = 0;
-              });
-              _pageController.jumpToPage(0);
-            });
-          },
-        )
-            : SelectGunPage(
-          onBackToHome: () {
-            setState(() {
-              _selectedNavIndex = 0;
-            });
-            _pageController.jumpToPage(0);
-          },
-          onProceedToCharge: () {
-            setState(() {
-              _isCharging = true; // Switches Map tab to ChargingProgressPage
-            });
-          },
-        ),
+        () => const MapPage(), // You will build this in map_page.dart
 
-        ChargingHistoryPage(
-          onBackToHome: () {
-            setState(() {
-              _selectedNavIndex = 0;
-            });
-            _pageController.jumpToPage(0);
-          },
-        ),
+    // 1: Map Tab (Handles the charging toggle)
+        () => _isCharging
+        ? ChargingProgressPage(
+      onStopCharging: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ChargingSummaryPage()),
+        ).then((_) {
+          setState(() {
+            _isCharging = false;
+            _selectedNavIndex = 0;
+          });
+        });
+      },
+    )
+        : SelectGunPage(
+      onBackToHome: () => setState(() => _selectedNavIndex = 0),
+      onProceedToCharge: () => setState(() => _isCharging = true),
+    ),
 
-        WalletPage(
-          onBackToHome: () {
-            setState(() {
-              _selectedNavIndex = 0;
-            });
-            _pageController.jumpToPage(0);
-          },
-        ),
+    // 2: History Tab
+        () => ChargingHistoryPage(
+      onBackToHome: () => setState(() => _selectedNavIndex = 0),
+    ),
 
-        const ProfilePage(),
-      ],
-    );
-  }
+    // 3: Wallet Tab
+        () => WalletPage(
+      onBackToHome: () => setState(() => _selectedNavIndex = 0),
+    ),
+
+    // 4: Profile Tab
+        () => const ProfilePage(),
+  ];
+
+    Widget _buildBody() {
+      final builders = _pageBuilders;
+
+      return IndexedStack(
+        index: _selectedNavIndex,
+        children: List.generate(builders.length, (index) {
+          // Only execute the function and build the widget if it has been visited
+          if (_loadedIndices.contains(index)) {
+            return builders[index]();
+          }
+          // Otherwise, return an empty, zero-cost placeholder
+          return const SizedBox.shrink();
+        }),
+      );
+    }
+
 
 
   @override
   Widget build(BuildContext context) {
+    print('Dashbaord Bulid is called!');
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A0A),
       bottomNavigationBar: BottomNavigationBar(
@@ -128,15 +116,18 @@ class _DashboardPageState extends State<DashboardPage> {
         type: BottomNavigationBarType.fixed,
         selectedFontSize: 11,
         unselectedFontSize: 11,
-        onTap: (index) {
+
+        onTap: (index)
+        {
           setState(() {
             _selectedNavIndex = index; // Switches tab on tap
+            _loadedIndices.add(index); // Add this line!
           });
-          _pageController.jumpToPage(index);
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.bolt), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.location_on_outlined), label: "Map"),
+          BottomNavigationBarItem(icon: Icon(Icons.ev_station), label: "Charge"),
           BottomNavigationBarItem(icon: Icon(Icons.history), label: "History"),
           BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: "Wallet"),
           BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: "Profile"),
@@ -162,6 +153,7 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           ),
         ),
+
         SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
@@ -180,6 +172,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           style: TextStyle(color: Colors.white70, fontSize: 14),
                         ),
                         const SizedBox(height: 4),
+
                         Text(
                           vehicleName,
                           style: const TextStyle(
@@ -387,9 +380,10 @@ class _DashboardPageState extends State<DashboardPage> {
                             onPressed: () {
                               // Switches tab to Map (Tab 1), which renders SelectGunPage
                               setState(() {
-                                _selectedNavIndex = 1;
+                                _selectedNavIndex = 2;
+                                _loadedIndices.add(2);
                               });
-                              _pageController.jumpToPage(1);
+
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF2563EB),

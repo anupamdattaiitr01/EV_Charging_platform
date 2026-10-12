@@ -34,6 +34,7 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
     super.build(context);
     const cardBgColor = Color(0xFF161B22);
     const brandBlue = Color(0xFF2563EB);
+    print ('Build function for the Profile page is called!');
 
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A0A),
