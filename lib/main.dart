@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:multi_page_ev_charge/getstarted_page.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 import 'wallet_provider.dart';
 import 'package:provider/provider.dart';
@@ -15,8 +16,9 @@ void main() async {
   // So that Firebase connection is made securely
   WidgetsFlutterBinding.ensureInitialized();
 
-  //tells the app exactly to which online database to talk to when we requested an authentication process
+  await dotenv.load(fileName: ".env");
 
+  //tells the app exactly to which online database to talk to when we requested an authentication process
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
