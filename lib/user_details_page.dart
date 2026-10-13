@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'home_page.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class UserDetailsPage extends StatefulWidget {
   // this map stores the existing data if present
   final Map<dynamic, dynamic>? existingData;
   final bool isEditing;
+
 
   const UserDetailsPage({super.key, this.existingData, this.isEditing = false});
 
@@ -22,6 +27,11 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _extraController = TextEditingController();
   bool _isLoading = false;
+  File? _profileImage;
+  File? _aadhaarPdf;
+  String? _aadhaarFileName;
+  String? _existingProfileUrl;
+  String? _existingAadhaarUrl;
 
   @override
   void initState() {
@@ -36,6 +46,40 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
       _dlController.text = widget.existingData!['dl_number'] ?? "";
       _addressController.text = widget.existingData!['address'] ?? "";
       _extraController.text = widget.existingData!['additional_info'] ?? "";
+
+      _existingProfileUrl = widget.existingData!['profile_image_url'];
+      _existingAadhaarUrl = widget.existingData!['aadhaar_pdf_url'];
+      if (_existingAadhaarUrl != null) _aadhaarFileName = "Aadhaar_Verified.pdf";
+    }
+  }
+
+  // 1. Pick Profile Picture from Gallery
+  Future<void> _pickProfileImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? pickedImage = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 75, // Compresses image for faster upload
+    );
+
+    if (pickedImage != null) {
+      setState(() {
+        _profileImage = File(pickedImage.path);
+      });
+    }
+  }
+
+  // 2. Pick Aadhaar Card (Restricted to PDF only)
+  Future<void> _pickAadhaarPdf() async {
+    final PlatformFile? result = await FilePicker.pickFile(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+
+    if (result != null && result.path != null) {
+      setState(() {
+        _aadhaarPdf = File(result.path!);
+        _aadhaarFileName = result.name;
+      });
     }
   }
 
@@ -47,6 +91,21 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
       String uid = FirebaseAuth.instance.currentUser!.uid;
       DatabaseReference ref = FirebaseDatabase.instance.ref("users/$uid");
 
+      String? profileImageUrl = _existingProfileUrl;
+      if (_profileImage != null) {
+        final storageRef = FirebaseStorage.instance.ref().child("users/$uid/profile.jpg");
+        await storageRef.putFile(_profileImage!);
+        profileImageUrl = await storageRef.getDownloadURL();
+      }
+
+      // --- NEW: Upload Aadhaar PDF if selected ---
+      String? aadhaarPdfUrl = _existingAadhaarUrl;
+      if (_aadhaarPdf != null) {
+        final storageRef = FirebaseStorage.instance.ref().child("users/$uid/aadhaar.pdf");
+        await storageRef.putFile(_aadhaarPdf!);
+        aadhaarPdfUrl = await storageRef.getDownloadURL();
+      }
+
       // writing the data in the fire base
       await ref.set({
         "name": _nameController.text.trim(),
@@ -54,6 +113,8 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
         "dl_number": _dlController.text.trim(),
         "address": _addressController.text.trim(),
         "additional_info": _extraController.text.trim(),
+        "profile_image_url": profileImageUrl ?? "",
+        "aadhaar_pdf_url": aadhaarPdfUrl ?? "",
       });
 
       if (!mounted) return;
@@ -148,9 +209,83 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                   ),
                   const SizedBox(height: 32),
 
+                  Center(
+                    child: GestureDetector(
+                      onTap: _pickProfileImage,
+                      child: Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: 50,
+                            backgroundColor: const Color(0xFF161B22),
+                            backgroundImage: _profileImage != null
+                                ? FileImage(_profileImage!)
+                                : (_existingProfileUrl != null && _existingProfileUrl!.isNotEmpty
+                                ? NetworkImage(_existingProfileUrl!) as ImageProvider
+                                : null),
+                            child: (_profileImage == null && (_existingProfileUrl == null || _existingProfileUrl!.isEmpty))
+                                ? const Icon(Icons.person, size: 50, color: Colors.white54)
+                                : null,
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF2563EB),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+
                   _buildTextField(_nameController, "Full Name (Required)", isRequired: true),
                   _buildTextField(_phoneController, "Phone Number", isPhone: true),
                   _buildTextField(_dlController, "Driving License (DL) Number"),
+
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: InkWell(
+                      onTap: _pickAadhaarPdf,
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF161B22),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: _aadhaarFileName != null ? const Color(0xFF2563EB) : Colors.white12,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.picture_as_pdf,
+                              color: _aadhaarFileName != null ? const Color(0xFF00E676) : Colors.redAccent,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                _aadhaarFileName ?? "Upload Aadhaar Card (PDF)",
+                                style: TextStyle(
+                                  color: _aadhaarFileName != null ? Colors.white : Colors.white38,
+                                  fontSize: 15,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const Icon(Icons.upload_file, color: Colors.white54),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
                   _buildTextField(_addressController, "Full Address"),
                   _buildTextField(_extraController, "Additional Information (Optional)"),
 

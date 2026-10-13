@@ -4,6 +4,9 @@ import 'package:multi_page_ev_charge/otp_page.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:multi_page_ev_charge/home_page.dart';
+import 'package:toastification/toastification.dart';
 
 class login_page extends StatefulWidget {
   @override
@@ -44,6 +47,62 @@ class _login_pageState extends State<login_page> {
       },
       codeAutoRetrievalTimeout: (String verificationId) {},
     );
+  }
+
+
+  // complete function for the Google auth feature
+  Future<void> _signInWithGoogle() async {
+    try {
+      // this is the inbuilt google sign in object
+      // That object comes with the google_sign_in package
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        scopes: ['email', 'profile'],
+      );
+
+
+      // Starting point of the Google authentication and it triggers the whole pop up and do the log in
+      // this object only fetch the details of the user
+      // don't do the authentication part
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+      // Checking point if the process is done successfully
+      // does it contain the object of type GoogleSignInAccount
+      if (googleUser == null) return;
+
+      // this is the call to fetch the authentication details from Google
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      // creating the firebase authentication set up
+      final OAuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      await FirebaseAuth.instance.signInWithCredential(credential);
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const home_page(title: "Select your EV")),
+      );
+
+    }
+    catch (e)
+    {
+      if (!mounted) return;
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(content: Text("Google Sign-In Error: $e")),
+      // );
+      toastification.show(
+        context: context,
+        type: ToastificationType.error,
+        style: ToastificationStyle.flat,
+        title: const Text('Sign-In with Google Failed'),
+        description: Text(e.toString()),
+        autoCloseDuration: const Duration(seconds: 4),
+        alignment: Alignment.topRight,
+      );
+    }
   }
 
   @override
@@ -216,6 +275,61 @@ class _login_pageState extends State<login_page> {
                         ),
                       ),
                       SizedBox(height: 24),
+
+                      // Expansion of the new sign in method using the Google OAuth
+                      Row(
+                        children: const [
+                          Expanded(child: Divider(color: Colors.white24, thickness: 1)),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            child: Text("OR", style: TextStyle(color: Colors.white54)),
+                          ),
+                          Expanded(child: Divider(color: Colors.white24, thickness: 1)),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // The Sign in button that diverts the page from APP to Google sign in
+                      // If sign in passed successfully then it will divert directly to the Home page
+                      // If done successfully it will not go in the OTP page
+                      SizedBox(
+                        width: double.infinity,
+                        height: 55,
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.g_mobiledata, color: Colors.white, size: 32),
+                          label: const Text(
+                            "Continue with Google",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.white24),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+
+                          // Calling the function that take care of the sign in through the google auth
+                          onPressed:() {
+                            // toastification.show(
+                            //   context: context,
+                            //   type: ToastificationType.error,
+                            //   style: ToastificationStyle.flat,
+                            //   title: const Text('Sign-in with Google initiated!'),
+                            //   // description: Text(e.toString()),
+                            //   autoCloseDuration: const Duration(seconds: 4),
+                            //   alignment: Alignment.bottomLeft,
+                            // );
+                            _signInWithGoogle;},
+                        ),
+                      ),
+
+                      const Spacer(),
+
                       Spacer(),
                     ],
                   ),

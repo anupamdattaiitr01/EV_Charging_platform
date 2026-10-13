@@ -121,7 +121,7 @@ class _MapPageState extends State<MapPage> {
         Marker(
           markerId: MarkerId(station.id),
           position: station.location,
-          icon: BitmapDescriptor.defaultMarkerWithHue(station.markerHue),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
           // on taping select the taped station as the to go station
           // calls the function
           onTap: () => _onStationSelected(station),
