@@ -1,0 +1,10 @@
+{
+  "greeting": "Good Evening",
+  "selectEV": "Select your EV",
+  "chargingHistory": "Charging History",
+  "wallet": "Wallet",
+  "notifications": "Notifications",
+  "helpSupport": "Help & Support",
+  "userManual": "Read User Manual",
+  "logOut": "Log Out"
+}

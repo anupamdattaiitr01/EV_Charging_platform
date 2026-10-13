@@ -4,6 +4,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'user_details_page.dart';
 import 'login_page.dart';
 import 'user_manual_page.dart';
+import 'l10n/app_localizations.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -276,17 +277,17 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
                           ),
                           child: Column(
                             children: [
-                              _buildMenuTile(Icons.history, "Charging History"),
+                              _buildMenuTile(Icons.history, AppLocalizations.of(context)!.chargingHistory),
                               const Divider(color: Colors.white10, height: 1, indent: 16, endIndent: 16),
-                              _buildMenuTile(Icons.account_balance_wallet_outlined, "Wallet"),
+                              _buildMenuTile(Icons.account_balance_wallet_outlined, AppLocalizations.of(context)!.wallet),
                               const Divider(color: Colors.white10, height: 1, indent: 16, endIndent: 16),
-                              _buildMenuTile(Icons.notifications_none, "Notifications"),
+                              _buildMenuTile(Icons.notifications_none, AppLocalizations.of(context)!.notifications),
                               const Divider(color: Colors.white10, height: 1, indent: 16, endIndent: 16),
-                              _buildMenuTile(Icons.help_outline, "Help & Support"),
+                              _buildMenuTile(Icons.help_outline, AppLocalizations.of(context)!.helpSupport),
                               const Divider(color: Colors.white10, height: 1, indent: 16, endIndent: 16),
                               _buildMenuTile(
                                 Icons.menu_book,
-                                "Read User Manual",
+                                AppLocalizations.of(context)!.userManual,
                                 onTap: () {
                                   Navigator.push(
                                     context,
@@ -343,9 +344,9 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
                               );
                             },
                             icon: const Icon(Icons.logout, color: Colors.redAccent, size: 20),
-                            label: const Text(
-                              "Log Out",
-                              style: TextStyle(
+                            label: Text(
+                              AppLocalizations.of(context)!.logOut,
+                              style: const TextStyle(
                                 color: Colors.redAccent,
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
