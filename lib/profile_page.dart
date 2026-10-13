@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'user_details_page.dart';
 import 'login_page.dart';
+import 'user_manual_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -267,7 +268,7 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
                           ),
                         ),
                         const SizedBox(height: 24),
-      
+
                         Container(
                           decoration: BoxDecoration(
                             color: cardBgColor.withOpacity(0.6),
@@ -282,6 +283,17 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
                               _buildMenuTile(Icons.notifications_none, "Notifications"),
                               const Divider(color: Colors.white10, height: 1, indent: 16, endIndent: 16),
                               _buildMenuTile(Icons.help_outline, "Help & Support"),
+                              const Divider(color: Colors.white10, height: 1, indent: 16, endIndent: 16),
+                              _buildMenuTile(
+                                Icons.menu_book,
+                                "Read User Manual",
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const UserManualPage()),
+                                  );
+                                },
+                              ),
                             ],
                           ),
                         ),
@@ -362,7 +374,7 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
     );
   }
 
-  Widget _buildMenuTile(IconData icon, String title) {
+  Widget _buildMenuTile(IconData icon, String title, {VoidCallback? onTap}) {
     return Material(
       color: Colors.transparent,
       child: ListTile(
@@ -372,8 +384,8 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
           title,
           style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
         ),
-        onTap: () {
-        },
+        trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white38, size: 14),
+        onTap: onTap,
       ),
     );
   }

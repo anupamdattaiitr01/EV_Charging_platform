@@ -9,6 +9,7 @@ import 'package:multi_page_ev_charge/home_page.dart';
 import 'package:toastification/toastification.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:multi_page_ev_charge/user_details_page.dart';
+import 'package:multi_page_ev_charge/getstarted_page.dart';
 
 class login_page extends StatefulWidget {
   @override
@@ -172,6 +173,16 @@ class _login_pageState extends State<login_page> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A0A),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+
       body: Stack(
         children: [
           Opacity(

@@ -127,6 +127,15 @@ class _otp_pageState extends State<otp_page> {
     return
       Scaffold(
         backgroundColor: const Color(0xFF0A0A0A),
+          extendBodyBehindAppBar: true,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
         body: Stack(
           children: [
             Opacity(
