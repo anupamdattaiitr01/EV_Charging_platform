@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'map_page.dart';
 import 'select_gun_page.dart';
 import 'charging_progress_page.dart';
@@ -21,6 +24,10 @@ class _DashboardPageState extends State<DashboardPage> {
   // Helps in the easier and faster loading of the details from the local memory
   String vehicleName = "Loading Vehicle...";
   int _selectedNavIndex = 0;
+  // Weather variables
+  String _temperature = "--°C";
+  String _weatherCondition = "Loading...";
+  IconData _weatherIcon = Icons.cloud_outlined;
 
   final Set<int> _loadedIndices = {0};
   bool _isCharging = false;
@@ -30,7 +37,10 @@ class _DashboardPageState extends State<DashboardPage> {
     print ('Init State of the Dashboard Page is called!');
     super.initState();
     _loadVehicleDetails();
+    _fetchWeather();
   }
+
+
 
   @override
   // Shared Preference Variable details
@@ -43,6 +53,62 @@ class _DashboardPageState extends State<DashboardPage> {
     setState(() {
       vehicleName = "$brand $model";
     });
+  }
+
+  Future<void> _fetchWeather() async {
+    final String weatherKey = dotenv.env['WEATHER_API_KEY'] ?? '';
+
+    // Check if the key is actually being read from the env file
+    if (weatherKey.isEmpty) {
+      print("Weather API Key is missing!!!");
+      return;
+    }
+
+    final url = Uri.parse(
+      'https://api.openweathermap.org/data/2.5/weather?lat=28.4354&lon=77.0823&appid=$weatherKey&units=metric',
+    );
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        print ("Details are fetched Successfully!");
+        final data = json.decode(response.body);
+
+        if (!mounted) return;
+        setState(() {
+          _temperature = "${data['main']['temp'].round()}°C";
+          _weatherCondition = data['weather'][0]['main'];
+
+          String conditionLower = _weatherCondition.toLowerCase();
+          if (conditionLower.contains('cloud')) {
+            _weatherIcon = Icons.cloud;
+          } else if (conditionLower.contains('rain') || conditionLower.contains('drizzle')) {
+            _weatherIcon = Icons.water_drop;
+          } else if (conditionLower.contains('clear')) {
+            _weatherIcon = Icons.wb_sunny;
+          } else if (conditionLower.contains('thunder')) {
+            _weatherIcon = Icons.thunderstorm;
+          } else {
+            _weatherIcon = Icons.wb_cloudy;
+          }
+        });
+      }
+      else {
+        if (!mounted) return;
+        setState(() {
+          print ("Error in fetching the details from the weather API!");
+          _weatherCondition = "Error ${response.statusCode}";
+        });
+      }
+    }
+    catch (e) {
+      print("WEATHER EXCEPTION: $e");
+      if (!mounted) return;
+      setState(() {
+        _weatherCondition = "Offline";
+      });
+    }
   }
 
   List<Widget Function()> get _pageBuilders => [
@@ -161,6 +227,7 @@ class _DashboardPageState extends State<DashboardPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header
+                // Header
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -168,11 +235,10 @@ class _DashboardPageState extends State<DashboardPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          "Good Evening, Mahendra",
+                          "Good Evening, Anupam",
                           style: TextStyle(color: Colors.white70, fontSize: 14),
                         ),
                         const SizedBox(height: 4),
-
                         Text(
                           vehicleName,
                           style: const TextStyle(
@@ -183,13 +249,39 @@ class _DashboardPageState extends State<DashboardPage> {
                         ),
                       ],
                     ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.person_outline, color: Colors.white, size: 28),
+
+                    // --- NEW: Weather Info & Profile Icon ---
+                    Row(
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                                _temperature,
+                                style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)
+                            ),
+                            Text(
+                                _weatherCondition,
+                                style: const TextStyle(color: Colors.white70, fontSize: 11)
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(_weatherIcon, color: const Color(0xFFFFB300), size: 26),
+                        const SizedBox(width: 12),
+                        IconButton(
+                          onPressed: () {},
+                          icon: const Icon(Icons.person_outline, color: Colors.white, size: 28),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
+
+
 
                 // Battery Card
                 Container(

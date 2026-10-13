@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:multi_page_ev_charge/home_page.dart';
 import 'package:toastification/toastification.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:multi_page_ev_charge/user_details_page.dart';
 
 class login_page extends StatefulWidget {
   @override
@@ -52,39 +54,74 @@ class _login_pageState extends State<login_page> {
 
   // complete function for the Google auth feature
   Future<void> _signInWithGoogle() async {
+    // Here are the two major tasks that are dependent on two external service providers
+    // Google helps to get the user details  -- > handles account selection, user authentication and provides token to the firebase to establish users's Identity
+    // Firebase accepts the Google credential, verifies it, and gives your app a Firebase user identity and authentication session.
+
     try {
       // this is the inbuilt google sign in object
       // That object comes with the google_sign_in package
+      // this object is later required to initiate the Google Sign in Process
       final GoogleSignIn googleSignIn = GoogleSignIn(
         scopes: ['email', 'profile'],
       );
 
+      // Clears the cached session so the account picker always displays
+      await googleSignIn.signOut();
 
       // Starting point of the Google authentication and it triggers the whole pop up and do the log in
       // this object only fetch the details of the user
       // don't do the authentication part
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      // The Object is initiated with the required scopes and then
+      // the above created object is used to call the Sign in Method
 
       // Checking point if the process is done successfully
       // does it contain the object of type GoogleSignInAccount
       if (googleUser == null) return;
 
       // this is the call to fetch the authentication details from Google
+      // Once the user selected the account and account details are stored
+      // then Google tries to get the authentication details to establish connection with the firebase
+      // It stores the idToken and the AccessToken
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
       // creating the firebase authentication set up
+      // Setting up the tokens given by the Google auth to an object
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
+
+      // Establishing Connection with the Firebase
       await FirebaseAuth.instance.signInWithCredential(credential);
 
       if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const home_page(title: "Select your EV")),
-      );
+
+      // Code to check if the user is already present or not
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      String? uid = userCredential.user?.uid;
+
+      if (uid == null) return;
+
+      // Check if user record already exists in Realtime Database
+      DatabaseReference userRef = FirebaseDatabase.instance.ref("users/$uid");
+      DataSnapshot snapshot = await userRef.get();
+
+      if (!mounted) return;
+
+      if (!snapshot.exists) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const UserDetailsPage()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const home_page(title: "Select your EV")),
+        );
+      }
 
     }
     catch (e)
@@ -314,7 +351,7 @@ class _login_pageState extends State<login_page> {
                           ),
 
                           // Calling the function that take care of the sign in through the google auth
-                          onPressed:() {
+                          onPressed:  _signInWithGoogle,
                             // toastification.show(
                             //   context: context,
                             //   type: ToastificationType.error,
@@ -324,7 +361,7 @@ class _login_pageState extends State<login_page> {
                             //   autoCloseDuration: const Duration(seconds: 4),
                             //   alignment: Alignment.bottomLeft,
                             // );
-                            _signInWithGoogle;},
+
                         ),
                       ),
 
