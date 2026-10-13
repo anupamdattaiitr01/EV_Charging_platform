@@ -28,6 +28,7 @@ class _WalletPageState extends State<WalletPage> with AutomaticKeepAliveClientMi
     const brandBlue = Color(0xFF2563EB);
     print ('Build function for the Wallet page is called!');
     return Scaffold(
+      backgroundColor: const Color(0xFF0A0A0A),
       body: Stack(
         children: [
           // Background Glow[cite: 3]

@@ -5,6 +5,8 @@ import 'user_details_page.dart';
 import 'login_page.dart';
 import 'user_manual_page.dart';
 import 'l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
+import 'locale_provider.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -66,12 +68,28 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
                   padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      Text(
-                        "Profile", //[cite: 4]
+                    children: [
+                      const Text(
+                        "Profile",
                         style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
                       ),
-                      Icon(Icons.settings_outlined, color: Colors.white, size: 24), //[cite: 4]
+                      Consumer<LocaleProvider>(
+                        builder: (context, localeProvider, child) {
+                          return DropdownButton<Locale>(
+                            value: localeProvider.locale,
+                            dropdownColor: const Color(0xFF161B22),
+                            icon: const Icon(Icons.language, color: Colors.white70, size: 24),
+                            underline: const SizedBox(),
+                            items: const [
+                              DropdownMenuItem(value: Locale('en'), child: Text("English", style: TextStyle(color: Colors.white, fontSize: 14))),
+                              DropdownMenuItem(value: Locale('hi'), child: Text("हिंदी", style: TextStyle(color: Colors.white, fontSize: 14))),
+                            ],
+                            onChanged: (Locale? newLocale) {
+                              if (newLocale != null) localeProvider.setLocale(newLocale);
+                            },
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
