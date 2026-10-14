@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'locale_provider.dart';
 
 class WalletPage extends StatefulWidget {
   final VoidCallback onBackToHome;
@@ -24,6 +26,7 @@ class _WalletPageState extends State<WalletPage> with AutomaticKeepAliveClientMi
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final translator = Provider.of<DynamicTranslationProvider>(context);
     const cardBgColor = Color(0xFF161B22);
     const brandBlue = Color(0xFF2563EB);
     print ('Build function for the Wallet page is called!');
@@ -61,8 +64,8 @@ class _WalletPageState extends State<WalletPage> with AutomaticKeepAliveClientMi
                         icon: const Icon(Icons.close, color: Colors.white, size: 24),
                         onPressed: widget.onBackToHome,
                       ),
-                      const Text(
-                        "Wallet Recharge",
+                      Text(
+                        translator.translate("Wallet Recharge"),
                         style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const Icon(Icons.history, color: Colors.white, size: 24),
@@ -92,10 +95,10 @@ class _WalletPageState extends State<WalletPage> with AutomaticKeepAliveClientMi
                             children: [
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const [
-                                  Text("Wallet Balance", style: TextStyle(color: Colors.white54, fontSize: 13)),
+                                children: [
+                                  Text(translator.translate("Wallet Balance"), style: TextStyle(color: Colors.white54, fontSize: 13)),
                                   SizedBox(height: 6),
-                                  Text("₹847.06", style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+                                  Text(translator.translate("₹847.06"), style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
                                 ],
                               ),
                               const Icon(Icons.account_balance_wallet_outlined, color: brandBlue, size: 40),
@@ -105,9 +108,9 @@ class _WalletPageState extends State<WalletPage> with AutomaticKeepAliveClientMi
                         const SizedBox(height: 24),
 
                         // Quick Recharge Section[cite: 3]
-                        const Text("Quick Recharge", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                        Text(translator.translate("Quick Recharge"), style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 4),
-                        const Text("Recharge Amount", style: TextStyle(color: Colors.white54, fontSize: 13)),
+                        Text(translator.translate("Recharge Amount"), style: TextStyle(color: Colors.white54, fontSize: 13)),
                         const SizedBox(height: 16),
 
                         Row(
@@ -122,7 +125,7 @@ class _WalletPageState extends State<WalletPage> with AutomaticKeepAliveClientMi
                         const SizedBox(height: 24),
 
                         // Custom Amount Section[cite: 3]
-                        const Text("Custom Amount", style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                        Text(translator.translate("Custom Amount"), style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 12),
                         Container(
                           height: 52,
@@ -141,11 +144,11 @@ class _WalletPageState extends State<WalletPage> with AutomaticKeepAliveClientMi
                               });
                             },
                             decoration: InputDecoration(
-                              prefixIcon: const Padding(
+                              prefixIcon: Padding(
                                 padding: EdgeInsets.all(14.0),
-                                child: Text("₹", style: TextStyle(color: Colors.white54, fontSize: 18)),
+                                child: Text(translator.translate("₹"), style: TextStyle(color: Colors.white54, fontSize: 18)),
                               ),
-                              hintText: "Enter Custom Amount",
+                              hintText:translator.translate( "Enter Custom Amount"),
                               hintStyle: const TextStyle(color: Colors.white38, fontSize: 14),
                               border: InputBorder.none,
                             ),
@@ -154,13 +157,13 @@ class _WalletPageState extends State<WalletPage> with AutomaticKeepAliveClientMi
                         const SizedBox(height: 28),
 
                         // Payment Method Section[cite: 3]
-                        const Text("Payment Method", style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                        Text(translator.translate("Payment Method"), style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 12),
-                        _buildPaymentTile(Icons.qr_code_scanner, "UPI Payment", cardBgColor),
+                        _buildPaymentTile(Icons.qr_code_scanner, "UPI Payment", cardBgColor, translator),
                         const SizedBox(height: 10),
-                        _buildPaymentTile(Icons.credit_card, "Debit / Credit Card", cardBgColor),
+                        _buildPaymentTile(Icons.credit_card, "Debit / Credit Card", cardBgColor, translator),
                         const SizedBox(height: 10),
-                        _buildPaymentTile(Icons.account_balance, "Net Banking", cardBgColor),
+                        _buildPaymentTile(Icons.account_balance, "Net Banking", cardBgColor, translator),
                         const SizedBox(height: 30),
                       ],
                     ),
@@ -172,8 +175,8 @@ class _WalletPageState extends State<WalletPage> with AutomaticKeepAliveClientMi
                   padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
                   child: Column(
                     children: [
-                      const Text(
-                        "Secure payments powered by Razorpay",
+                      Text(
+                        translator.translate("Secure payments powered by Razorpay"),
                         style: TextStyle(color: Colors.white38, fontSize: 11),
                       ),
                       const SizedBox(height: 12),
@@ -186,8 +189,8 @@ class _WalletPageState extends State<WalletPage> with AutomaticKeepAliveClientMi
                             backgroundColor: brandBlue,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
-                          child: const Text(
-                            "Proceed to Pay",
+                          child: Text(
+                            translator.translate("Proceed to Pay"),
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                         ),
@@ -236,7 +239,7 @@ class _WalletPageState extends State<WalletPage> with AutomaticKeepAliveClientMi
   }
 
   // Helper widget for Payment Method Tiles[cite: 3]
-  Widget _buildPaymentTile(IconData icon, String title, Color cardBgColor) {
+  Widget _buildPaymentTile(IconData icon, String title, Color cardBgColor, DynamicTranslationProvider translator) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
@@ -251,7 +254,7 @@ class _WalletPageState extends State<WalletPage> with AutomaticKeepAliveClientMi
             children: [
               Icon(icon, color: Colors.white70, size: 22),
               const SizedBox(width: 16),
-              Text(title, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+              Text(translator.translate(title), style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
             ],
           ),
           const Icon(Icons.arrow_forward, color: Colors.white54, size: 20),

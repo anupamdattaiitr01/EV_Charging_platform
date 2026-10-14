@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'charging_summary_page.dart';
+import 'package:provider/provider.dart';
+import 'locale_provider.dart';
 
 class ChargingProgressPage extends StatelessWidget {
   final VoidCallback onStopCharging;
@@ -7,6 +9,7 @@ class ChargingProgressPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final translator = Provider.of<DynamicTranslationProvider>(context);
     const cardBgColor = Color(0xFF161B22);
 
     return Scaffold(
@@ -22,14 +25,14 @@ class ChargingProgressPage extends StatelessWidget {
         automaticallyImplyLeading: false,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Text(
-              "Charging In Progress",
+              translator.translate("Charging In Progress"),
               style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 2),
             Text(
-              "Choose An Available Connector",
+              translator.translate("Choose An Available Connector"),
               style: TextStyle(color: Colors.white54, fontSize: 12),
             ),
           ],
@@ -89,9 +92,9 @@ class ChargingProgressPage extends StatelessWidget {
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
+                          children: [
                             Text(
-                              "68%",
+                              translator.translate("68%"),
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 38,
@@ -100,7 +103,7 @@ class ChargingProgressPage extends StatelessWidget {
                             ),
                             SizedBox(height: 4),
                             Text(
-                              "Charging...",
+                              translator.translate("Charging..."),
                               style: TextStyle(color: Color(0xFF00E5FF), fontSize: 13),
                             ),
                           ],
@@ -119,11 +122,11 @@ class ChargingProgressPage extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      _buildMetricItem(icon: Icons.bolt, value: "58 KW", label: "Power"),
+                      _buildMetricItem(icon: Icons.bolt, value: translator.translate("58 KW"), label: translator.translate("Power")),
                       _buildDivider(),
-                      _buildMetricItem(icon: Icons.battery_charging_full, value: "12.4 KWh", label: "Energy"),
+                      _buildMetricItem(icon: Icons.battery_charging_full, value: translator.translate("12.4 KWh"), label: translator.translate("Energy")),
                       _buildDivider(),
-                      _buildMetricItem(icon: Icons.currency_rupee, value: "223.20", label: "Cost"),
+                      _buildMetricItem(icon: Icons.currency_rupee, value: translator.translate("223.20"), label: translator.translate("Cost")),
                     ],
                   ),
                 ),
@@ -136,22 +139,22 @@ class ChargingProgressPage extends StatelessWidget {
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text("Time Elapsed:", style: TextStyle(color: Colors.white54, fontSize: 12)),
+                        children: [
+                          Text(translator.translate("Time Elapsed:"), style: TextStyle(color: Colors.white54, fontSize: 12)),
                           SizedBox(height: 4),
                           Text(
-                            "00:18:24",
+                            translator.translate("00:18:24"),
                             style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
-                        children: const [
-                          Text("Estimated Full:", style: TextStyle(color: Colors.white54, fontSize: 12)),
+                        children: [
+                          Text(translator.translate("Estimated Full:"), style: TextStyle(color: Colors.white54, fontSize: 12)),
                           SizedBox(height: 4),
                           Text(
-                            "00:32:10 Remaining",
+                            translator.translate("00:32:10 Remaining"),
                             style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
                           ),
                         ],
@@ -170,8 +173,8 @@ class ChargingProgressPage extends StatelessWidget {
                       backgroundColor: const Color(0xFFE53935),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text(
-                      "Stop Charging",
+                    child: Text(
+                      translator.translate("Stop Charging"),
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                   ),

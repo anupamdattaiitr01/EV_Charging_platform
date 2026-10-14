@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'dash_board.dart';
+import 'package:provider/provider.dart';
+import 'locale_provider.dart';
 
 class ChargingSummaryPage extends StatelessWidget {
   const ChargingSummaryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final translator = Provider.of<DynamicTranslationProvider>(context);
     const cardBgColor = Color(0xFF161B22);
     const brandBlue = Color(0xFF2563EB);
 
@@ -20,8 +23,8 @@ class ChargingSummaryPage extends StatelessWidget {
             Navigator.pop(context);
           },
         ),
-        title: const Text(
-          "Session Summary",
+        title: Text(
+          translator.translate("Session Summary"),
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
@@ -59,8 +62,8 @@ class ChargingSummaryPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  "Charging Completed",
+                Text(
+                  translator.translate("Charging Completed"),
                   style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 24),
@@ -74,16 +77,16 @@ class ChargingSummaryPage extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      _buildReceiptRow("Charger:", "ChargeOn Highway Hub", "Date:", "17 Feb 2026 - 06:42 PM"),
+                      _buildReceiptRow(translator.translate("Charger:"), translator.translate("ChargeOn Highway Hub"), translator.translate("Date:"), translator.translate("17 Feb 2026 - 06:42 PM")),
                       const Divider(color: Colors.white10, height: 24),
-                      _buildReceiptRowThree("Energy Delivered:", "18.5 KWh", "Duration:", "42 Min 18 Sec", "Power Type:", "CCS2 • 60kW"),
+                      _buildReceiptRowThree(translator.translate("Energy Delivered:"), translator.translate("18.5 KWh"), translator.translate("Duration:"), translator.translate("42 Min 18 Sec"), translator.translate("Power Type:"), translator.translate("CCS2 • 60kW")),
                       const Divider(color: Colors.white10, height: 24),
-                      _buildReceiptRowThree("Energy Cost:", "₹ 333.00", "Taxes:", "₹ 59.94", "Platform Fee:", "₹ 10.00"),
+                      _buildReceiptRowThree(translator.translate("Energy Cost:"), translator.translate("₹ 333.00"), translator.translate("Taxes:"), translator.translate("₹ 59.94"), translator.translate("Platform Fee:"), translator.translate("₹ 10.00")),
                       const Divider(color: Colors.white10, height: 24),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
-                          Text("Total Paid:", style: TextStyle(color: Colors.white70, fontSize: 13)),
+                        children: [
+                          Text(translator.translate("Total Paid:"), style: TextStyle(color: Colors.white70, fontSize: 13)),
                           Text(
                             "₹ 402.94",
                             style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
@@ -108,14 +111,14 @@ class ChargingSummaryPage extends StatelessWidget {
                       const SizedBox(width: 14),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
-                            "Paid Via Wallet",
+                            translator.translate("Paid Via Wallet"),
                             style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
                           ),
                           SizedBox(height: 2),
                           Text(
-                            "Wallet Balance Remaining: ₹ 847.06",
+                            translator.translate("Wallet Balance Remaining: ₹ 847.06"),
                             style: TextStyle(color: Colors.white38, fontSize: 11),
                           ),
                         ],
@@ -135,8 +138,8 @@ class ChargingSummaryPage extends StatelessWidget {
                       backgroundColor: brandBlue,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text(
-                      "Download Invoice",
+                    child: Text(
+                      translator.translate("Download Invoice"),
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                   ),
@@ -146,8 +149,8 @@ class ChargingSummaryPage extends StatelessWidget {
                 // Share Receipt Text Button
                 TextButton(
                   onPressed: () {},
-                  child: const Text(
-                    "Share Receipt",
+                  child: Text(
+                    translator.translate("Share Receipt"),
                     style: TextStyle(color: brandBlue, fontSize: 14, fontWeight: FontWeight.w600),
                   ),
                 ),

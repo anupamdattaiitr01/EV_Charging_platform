@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'charging_progress_page.dart';
+import 'package:provider/provider.dart';
+import 'locale_provider.dart';
 
 class SelectGunPage extends StatefulWidget {
   final VoidCallback onBackToHome;
@@ -22,6 +24,7 @@ class _SelectGunPageState extends State<SelectGunPage> with AutomaticKeepAliveCl
 
   @override
   Widget build(BuildContext context) {
+    final translator = Provider.of<DynamicTranslationProvider>(context);
     super.build(context);
     const cardBgColor = Color(0xFF161B22);
     const brandBlue = Color(0xFF2563EB);
@@ -58,14 +61,14 @@ class _SelectGunPageState extends State<SelectGunPage> with AutomaticKeepAliveCl
                   const SizedBox(width: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
-                        "Select Charging Gun",
+                        translator.translate("Select Charging Gun"),
                         style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 2),
                       Text(
-                        "Choose An Available Connector",
+                        translator.translate("Choose An Available Connector"),
                         style: TextStyle(color: Colors.white54, fontSize: 12),
                       ),
                     ],
@@ -74,13 +77,13 @@ class _SelectGunPageState extends State<SelectGunPage> with AutomaticKeepAliveCl
               ),
               const SizedBox(height: 24),
 
-              const Text(
-                "ChargeOn Highway Hub",
+              Text(
+                translator.translate("ChargeOn Highway Hub"),
                 style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
-              const Text(
-                "2 Charging Points • 60kW",
+              Text(
+                translator.translate ("2 Charging Points • 60kW"),
                 style: TextStyle(color: Colors.white54, fontSize: 12),
               ),
               const SizedBox(height: 20),
@@ -94,6 +97,7 @@ class _SelectGunPageState extends State<SelectGunPage> with AutomaticKeepAliveCl
                 statusColor: const Color(0xFF00E676),
                 isAvailable: true,
                 cardColor: cardBgColor,
+                translator: translator,
               ),
 
               const SizedBox(height: 16),
@@ -107,6 +111,7 @@ class _SelectGunPageState extends State<SelectGunPage> with AutomaticKeepAliveCl
                 statusColor: const Color(0xFF00E676),
                 isAvailable: true,
                 cardColor: cardBgColor,
+                translator: translator,
               ),
 
               const SizedBox(height: 16),
@@ -119,6 +124,7 @@ class _SelectGunPageState extends State<SelectGunPage> with AutomaticKeepAliveCl
                 statusColor: const Color(0xFFFFA000),
                 isAvailable: false,
                 cardColor: cardBgColor,
+                translator: translator,
               ),
 
               const SizedBox(height: 16),
@@ -131,6 +137,7 @@ class _SelectGunPageState extends State<SelectGunPage> with AutomaticKeepAliveCl
                 statusColor: const Color(0xFF00E676),
                 isAvailable: true,
                 cardColor: cardBgColor,
+                translator: translator,
               ),
 
               const SizedBox(height: 32),
@@ -146,8 +153,8 @@ class _SelectGunPageState extends State<SelectGunPage> with AutomaticKeepAliveCl
                     backgroundColor: brandBlue,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text(
-                    "Proceed to Charge",
+                  child: Text(
+                    translator.translate("Proceed to Charge"),
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                 ),
@@ -169,6 +176,7 @@ class _SelectGunPageState extends State<SelectGunPage> with AutomaticKeepAliveCl
     required Color statusColor,
     required bool isAvailable,
     required Color cardColor,
+    required DynamicTranslationProvider translator,
   }) {
     final bool isSelected = selected_gun == gunId;
 
@@ -199,12 +207,12 @@ class _SelectGunPageState extends State<SelectGunPage> with AutomaticKeepAliveCl
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    translator.translate(title),
                     style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
-                  Text(connector, style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                  Text(speed, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                  Text(translator.translate(connector), style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                  Text(translator.translate(speed), style: const TextStyle(color: Colors.white54, fontSize: 12)),
                 ],
               ),
             ),
@@ -216,7 +224,7 @@ class _SelectGunPageState extends State<SelectGunPage> with AutomaticKeepAliveCl
                 border: Border.all(color: statusColor, width: 0.8),
               ),
               child: Text(
-                statusText,
+                translator.translate(statusText),
                 style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.w600),
               ),
             ),
