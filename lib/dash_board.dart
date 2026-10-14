@@ -11,6 +11,8 @@ import 'charging_summary_page.dart';
 import 'charging_history_page.dart';
 import 'wallet_page.dart';
 import 'profile_page.dart';
+import 'locale_provider.dart';
+import 'package:provider/provider.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -172,6 +174,7 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     print('Dashbaord Bulid is called!');
+    final translator = Provider.of<DynamicTranslationProvider>(context);
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A0A),
       bottomNavigationBar: BottomNavigationBar(
@@ -190,13 +193,13 @@ class _DashboardPageState extends State<DashboardPage> {
             _loadedIndices.add(index); // Add this line!
           });
         },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.bolt), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.location_on_outlined), label: "Map"),
-          BottomNavigationBarItem(icon: Icon(Icons.ev_station), label: "Charge"),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: "History"),
-          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: "Wallet"),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: "Profile"),
+        items: [
+          BottomNavigationBarItem(icon: const Icon(Icons.bolt), label: translator.translate("Home")),
+          BottomNavigationBarItem(icon: const Icon(Icons.location_on_outlined), label: translator.translate("Map")),
+          BottomNavigationBarItem(icon: const Icon(Icons.ev_station), label: translator.translate("Charge")),
+          BottomNavigationBarItem(icon: const Icon(Icons.history), label: translator.translate("History")),
+          BottomNavigationBarItem(icon: const Icon(Icons.account_balance_wallet_outlined), label: translator.translate("Wallet")),
+          BottomNavigationBarItem(icon: const Icon(Icons.person_outline), label: translator.translate("Profile")),
         ],
       ),
       body: _buildBody(),
@@ -204,6 +207,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildHomeView() {
+    final translator = Provider.of<DynamicTranslationProvider>(context);
     return Stack(
       children: [
         Positioned(
@@ -234,8 +238,8 @@ class _DashboardPageState extends State<DashboardPage> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "Good Evening, Anupam",
+                        Text(
+                          translator.translate("Good Evening, Anupam"),
                           style: TextStyle(color: Colors.white70, fontSize: 14),
                         ),
                         const SizedBox(height: 4),
@@ -295,9 +299,9 @@ class _DashboardPageState extends State<DashboardPage> {
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
-                            "62%",
+                            translator.translate("62%"),
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 32,
@@ -305,10 +309,10 @@ class _DashboardPageState extends State<DashboardPage> {
                             ),
                           ),
                           SizedBox(height: 6),
-                          Text("Estimated Range", style: TextStyle(color: Colors.white54, fontSize: 12)),
+                          Text(translator.translate("Estimated Range"), style: TextStyle(color: Colors.white54, fontSize: 12)),
                           SizedBox(height: 2),
                           Text(
-                            "212 Km Remaining",
+                            translator.translate("212 Km Remaining"),
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 14,
@@ -319,7 +323,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                       Stack(
                         alignment: Alignment.center,
-                        children: const [
+                        children: [
                           SizedBox(
                             width: 72,
                             height: 72,
@@ -331,7 +335,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             ),
                           ),
                           Text(
-                            "50%",
+                            translator.translate("50%"),
                             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                           ),
                         ],
@@ -366,8 +370,8 @@ class _DashboardPageState extends State<DashboardPage> {
                           children: [
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: const [
-                                Text("Wallet Balance", style: TextStyle(color: Colors.white70, fontSize: 13)),
+                              children: [
+                                Text(translator.translate("Wallet Balance"), style: TextStyle(color: Colors.white70, fontSize: 13)),
                                 Icon(Icons.account_balance_wallet_outlined, color: Colors.white70, size: 20),
                               ],
                             ),
@@ -390,7 +394,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                   ),
-                                  child: const Text("Recharge", style: TextStyle(color: Color(0xFF2563EB), fontSize: 13)),
+                                  child: Text(translator.translate("Recharge"), style: TextStyle(color: Color(0xFF2563EB), fontSize: 13)),
                                 ),
                               ],
                             ),
@@ -403,10 +407,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 const SizedBox(height: 24),
 
                 // Nearest Charger Section
-                const Text(
-                  "Nearest DC Fast Charger",
-                  style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
-                ),
+                Text(translator.translate("Nearest DC Fast Charger"), style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(18),
@@ -420,8 +421,8 @@ class _DashboardPageState extends State<DashboardPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            "ChargeOn Highway Hub",
+                          Text(
+                            translator.translate("ChargeOn Highway Hub"),
                             style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                           Container(
@@ -439,8 +440,8 @@ class _DashboardPageState extends State<DashboardPage> {
                         children: [
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text("Power:", style: TextStyle(color: Colors.white38, fontSize: 11)),
+                            children: [
+                              Text(translator.translate("Power:"), style: const TextStyle(color: Colors.white38, fontSize: 11)),
                               SizedBox(height: 2),
                               Text("60kW DC Fast", style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
                             ],
@@ -448,10 +449,10 @@ class _DashboardPageState extends State<DashboardPage> {
                           const SizedBox(width: 48),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text("Distance:", style: TextStyle(color: Colors.white38, fontSize: 11)),
+                            children: [
+                              Text(translator.translate("Distance:"), style: const TextStyle(color: Colors.white38, fontSize: 11)),
                               SizedBox(height: 2),
-                              Text("1.4 Km Away", style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                              Text(translator.translate("1.4 Km Away"), style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
                             ],
                           ),
                         ],
@@ -462,10 +463,10 @@ class _DashboardPageState extends State<DashboardPage> {
                         children: [
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text("Price:", style: TextStyle(color: Colors.white38, fontSize: 11)),
-                              SizedBox(height: 2),
-                              Text("₹18 / KWh", style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                            children: [
+                              Text(translator.translate("Price:"), style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                              const SizedBox(height: 2),
+                              const Text("₹18 / KWh", style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)), // <-- Restored original price text
                             ],
                           ),
                           ElevatedButton(
@@ -482,7 +483,7 @@ class _DashboardPageState extends State<DashboardPage> {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                             ),
-                            child: const Text("Start Charging", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                            child: Text(translator.translate("Start Charging"), style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),
@@ -503,6 +504,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   date: "20 Feb 2026",
                   duration: "40 Min",
                   cardColor: const Color(0xFF161B22),
+                  translator: translator,
                 ),
                 const SizedBox(height: 12),
                 _buildSessionCard(
@@ -511,6 +513,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   date: "12 Feb 2026",
                   duration: "42 Min",
                   cardColor: const Color(0xFF161B22),
+                  translator: translator,
                 ),
               ],
             ),
@@ -528,6 +531,7 @@ Widget _buildSessionCard({
   required String date,
   required String duration,
   required Color cardColor,
+  required DynamicTranslationProvider translator,
 }) {
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
@@ -561,7 +565,7 @@ Widget _buildSessionCard({
             const SizedBox(width: 14),
             const Icon(Icons.schedule, color: Colors.white38, size: 13),
             const SizedBox(width: 4),
-            Text("Duration: $duration", style: const TextStyle(color: Colors.white54, fontSize: 11)),
+            Text("${translator.translate('Duration:')} $duration", style: const TextStyle(color: Colors.white54, fontSize: 11)),
           ],
         ),
       ],

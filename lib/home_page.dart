@@ -47,6 +47,7 @@ class _home_pageState extends State<home_page> {
   @override
   Widget build(BuildContext context) {
     print ("Built function is called for the home page");
+    final translator = Provider.of<DynamicTranslationProvider>(context);
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A0A),
       body: Stack(
@@ -83,8 +84,8 @@ class _home_pageState extends State<home_page> {
                               size: 48
                           ),
                           const SizedBox(height: 16),
-                          const Text(
-                            "Add Your Vehicle",
+                          Text(
+                            translator.translate("Add Your Vehicle"),
                             style: TextStyle(
                                 fontSize: 26,
                                 fontWeight: FontWeight.bold,
@@ -94,8 +95,8 @@ class _home_pageState extends State<home_page> {
 
                           const SizedBox(height: 8),
 
-                          const Text(
-                            "Select Your Car Details To Find Compatible Chargers Near You",
+                          Text(
+                            translator.translate("Select Your Car Details To Find Compatible Chargers Near You"),
                             style: TextStyle(
                                 fontSize: 13,
                                 color: Colors.white54
@@ -153,8 +154,8 @@ class _home_pageState extends State<home_page> {
                     // ),
 
                     const SizedBox(height: 40),
-                    const Text(
-                        "Brand",
+                    Text(
+                      translator.translate("Brand"),
                         style: TextStyle(color: Colors.white70, fontSize: 18, fontWeight: FontWeight.bold)
                     ),
                     const SizedBox(height: 8),
@@ -173,8 +174,8 @@ class _home_pageState extends State<home_page> {
                           isExpanded: true,
                           dropdownColor: const Color(0xFF161B22),
                           icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white54),
-                          hint: const Text(
-                              "Select Car Brand",
+                          hint: Text(
+                            translator.translate("Select Car Brand"),
                               style: TextStyle(color: Colors.white38)
                           ),
                           value: selectedBrand,
@@ -199,8 +200,8 @@ class _home_pageState extends State<home_page> {
                     ),
 
                     const SizedBox(height: 24),
-                    const Text(
-                        "Model",
+                    Text(
+                      translator.translate("Model"),
                         style: TextStyle(color: Colors.white70, fontSize: 18, fontWeight: FontWeight.bold)
                     ),
                     const SizedBox(height: 8),
@@ -217,8 +218,8 @@ class _home_pageState extends State<home_page> {
                           isExpanded: true,
                           dropdownColor: const Color(0xFF161B22),
                           icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white54),
-                          hint: const Text(
-                              "Select Model",
+                          hint: Text(
+                            translator.translate("Select Model"),
                               style: TextStyle(color: Colors.white38)
                           ),
                           value: selectedModel,
@@ -240,8 +241,8 @@ class _home_pageState extends State<home_page> {
                     ),
 
                     const SizedBox(height: 32),
-                    const Text(
-                        "Connector Type",
+                    Text(
+                        translator.translate("Connector Type"),
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -250,8 +251,8 @@ class _home_pageState extends State<home_page> {
                     ),
 
                     const SizedBox(height: 4),
-                    const Text(
-                      "Choose The Charging Port Supported By Your Car.",
+                    Text(
+                      translator.translate("Choose The Charging Port Supported By Your Car."),
                       style: TextStyle(color: Colors.white54, fontSize: 13),
                     ),
 
@@ -280,12 +281,12 @@ class _home_pageState extends State<home_page> {
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const [
+                                children: [
                                   Icon(Icons.electrical_services_outlined, color: Color(0xFF2563EB)),
                                   SizedBox(height: 16),
-                                  Text("CCS2", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                  Text(translator.translate("CCS2"), style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                                   SizedBox(height: 4),
-                                  Text("DC Fast Charging", style: TextStyle(color: Colors.white54, fontSize: 12)),
+                                  Text(translator.translate("DC Fast Charging"), style: TextStyle(color: Colors.white54, fontSize: 12)),
                                 ],
                               ),
                             ),
@@ -314,12 +315,12 @@ class _home_pageState extends State<home_page> {
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const [
+                                children: [
                                   Icon(Icons.electrical_services_outlined, color: Color(0xFF2563EB)),
                                   SizedBox(height: 16),
-                                  Text("CCS2", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                  Text(translator.translate("CCS2"), style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                                   SizedBox(height: 4),
-                                  Text("AC Charging", style: TextStyle(color: Colors.white54, fontSize: 12)),
+                                  Text(translator.translate("AC Charging"), style: TextStyle(color: Colors.white54, fontSize: 12)),
                                 ],
                               ),
                             ),
@@ -360,8 +361,8 @@ class _home_pageState extends State<home_page> {
                           }
                           else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Please select all vehicle details"),
+                               SnackBar(
+                                content: Text(translator.translate("Please select all vehicle details")),
                                 backgroundColor: Colors.redAccent,
                               ),
                             );
@@ -373,8 +374,8 @@ class _home_pageState extends State<home_page> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text(
-                          "Save & Continue",
+                        child: Text(
+                          translator.translate("Save & Continue"),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

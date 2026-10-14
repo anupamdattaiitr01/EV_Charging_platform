@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'locale_provider.dart';
 
 class ChargingHistoryPage extends StatefulWidget {
   final VoidCallback onBackToHome;
@@ -15,6 +17,7 @@ class _ChargingHistoryPageState extends State<ChargingHistoryPage> with Automati
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final translator = Provider.of<DynamicTranslationProvider>(context);
     const cardBgColor = Color(0xFF161B22);
 
     return Stack(
@@ -50,8 +53,8 @@ class _ChargingHistoryPageState extends State<ChargingHistoryPage> with Automati
                       icon: const Icon(Icons.close, color: Colors.white, size: 24),
                       onPressed: widget.onBackToHome, // Returns to Home tab
                     ),
-                    const Text(
-                      "Charging History",
+                    Text(
+                      translator.translate("Charging History"),
                       style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const Icon(Icons.filter_alt_outlined, color: Colors.white, size: 24),
@@ -68,9 +71,9 @@ class _ChargingHistoryPageState extends State<ChargingHistoryPage> with Automati
                     border: Border.all(color: Colors.white10),
                   ),
                   child: TextField(
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    style:  TextStyle(color: Colors.white, fontSize: 14),
                     decoration: InputDecoration(
-                      hintText: "Search By Station Name",
+                      hintText: translator.translate("Search By Station Name"),
                       hintStyle: const TextStyle(color: Colors.white38, fontSize: 14),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
@@ -85,23 +88,23 @@ class _ChargingHistoryPageState extends State<ChargingHistoryPage> with Automati
                   child: ListView(
                     physics: const BouncingScrollPhysics(),
                     children: [
-                      const Text("Today", style: TextStyle(color: Colors.white54, fontSize: 13, fontWeight: FontWeight.w500)),
+                      Text(translator.translate("Today"), style: TextStyle(color: Colors.white54, fontSize: 13, fontWeight: FontWeight.w500)),
                       const SizedBox(height: 12),
-                      _buildHistoryCard(cardBgColor),
+                      _buildHistoryCard(cardBgColor, translator),
                       const SizedBox(height: 12),
-                      _buildHistoryCard(cardBgColor),
+                      _buildHistoryCard(cardBgColor, translator),
                       const SizedBox(height: 24),
 
-                      const Text("Yesterday", style: TextStyle(color: Colors.white54, fontSize: 13, fontWeight: FontWeight.w500)),
+                      Text(translator.translate("Yesterday"), style: TextStyle(color: Colors.white54, fontSize: 13, fontWeight: FontWeight.w500)),
                       const SizedBox(height: 12),
-                      _buildHistoryCard(cardBgColor),
+                      _buildHistoryCard(cardBgColor, translator),
                       const SizedBox(height: 12),
-                      _buildHistoryCard(cardBgColor),
+                      _buildHistoryCard(cardBgColor, translator),
                       const SizedBox(height: 24),
 
-                      const Text("Feb 14, 2026", style: TextStyle(color: Colors.white54, fontSize: 13, fontWeight: FontWeight.w500)),
+                      Text(translator.translate("Feb 14, 2026"), style: TextStyle(color: Colors.white54, fontSize: 13, fontWeight: FontWeight.w500)),
                       const SizedBox(height: 12),
-                      _buildHistoryCard(cardBgColor),
+                      _buildHistoryCard(cardBgColor, translator),
                       const SizedBox(height: 20),
                     ],
                   ),
@@ -115,7 +118,7 @@ class _ChargingHistoryPageState extends State<ChargingHistoryPage> with Automati
   }
 
   // Extracted Card Widget
-  Widget _buildHistoryCard(Color cardBgColor) {
+  Widget _buildHistoryCard(Color cardBgColor, DynamicTranslationProvider translator) {
     const statusColor = Color(0xFF00E676); // Green
 
     return Container(
@@ -143,20 +146,20 @@ class _ChargingHistoryPageState extends State<ChargingHistoryPage> with Automati
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
-                  "ChargeOn Highway Hub", //[cite: 1, 2]
+                  translator.translate("ChargeOn Highway Hub"), //[cite: 1, 2]
                   style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
                   overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 4),
                 Text(
-                  "18.5 KWh • 42 Min", //[cite: 1, 2]
+                  translator.translate("18.5 KWh • 42 Min"), //[cite: 1, 2]
                   style: TextStyle(color: Colors.white54, fontSize: 12),
                 ),
                 SizedBox(height: 2),
                 Text(
-                  "06:42 PM", //[cite: 1, 2]
+                  translator.translate("06:42 PM"), //[cite: 1, 2]
                   style: TextStyle(color: Colors.white38, fontSize: 11),
                 ),
               ],
@@ -167,8 +170,8 @@ class _ChargingHistoryPageState extends State<ChargingHistoryPage> with Automati
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const Text(
-                "₹402", //[cite: 1, 2]
+              Text(
+                translator.translate("₹402"), //[cite: 1, 2]
                 style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -179,8 +182,8 @@ class _ChargingHistoryPageState extends State<ChargingHistoryPage> with Automati
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: statusColor, width: 1),
                 ),
-                child: const Text(
-                  "Completed", //[cite: 1, 2]
+                child: Text(
+                  translator.translate("Completed"), //[cite: 1, 2]
                   style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
                 ),
               ),
