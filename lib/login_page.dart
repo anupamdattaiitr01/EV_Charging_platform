@@ -10,6 +10,8 @@ import 'package:toastification/toastification.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:multi_page_ev_charge/user_details_page.dart';
 import 'package:multi_page_ev_charge/getstarted_page.dart';
+import 'package:provider/provider.dart';
+import 'locale_provider.dart';
 
 class login_page extends StatefulWidget {
   @override
@@ -54,7 +56,7 @@ class _login_pageState extends State<login_page> {
 
 
   // complete function for the Google auth feature
-  Future<void> _signInWithGoogle() async {
+  Future<void> _signInWithGoogle(DynamicTranslationProvider translator) async {
     // Here are the two major tasks that are dependent on two external service providers
     // Google helps to get the user details  -- > handles account selection, user authentication and provides token to the firebase to establish users's Identity
     // Firebase accepts the Google credential, verifies it, and gives your app a Firebase user identity and authentication session.
@@ -135,7 +137,8 @@ class _login_pageState extends State<login_page> {
         context: context,
         type: ToastificationType.error,
         style: ToastificationStyle.flat,
-        title: const Text('Sign-In with Google Failed'),
+        // --- TRANSLATED TOAST ---
+        title: Text(translator.translate('Sign-In with Google Failed')),
         description: Text(e.toString()),
         autoCloseDuration: const Duration(seconds: 4),
         alignment: Alignment.topRight,
@@ -171,6 +174,7 @@ class _login_pageState extends State<login_page> {
 
   @override
   Widget build(BuildContext context) {
+    final translator = Provider.of<DynamicTranslationProvider>(context);
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A0A),
       extendBodyBehindAppBar: true,
@@ -210,7 +214,7 @@ class _login_pageState extends State<login_page> {
 
                       SizedBox(height: 100),
                       Text(
-                        "Welcome Back!",
+                        translator.translate("Welcome Back!"),
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -220,7 +224,7 @@ class _login_pageState extends State<login_page> {
 
                       SizedBox(height: 8),
                       Text(
-                        "Sign In To Continue Charging Your EV Vehicle",
+                        translator.translate("Sign In To Continue Charging Your EV Vehicle"),
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.white70,
@@ -234,11 +238,11 @@ class _login_pageState extends State<login_page> {
                         // Validator function of the child class
                         validator: (phone) {
                           if (phone == null || phone.number.isEmpty) {
-                            return 'Please enter your phone number';
+                            return translator.translate('Please enter your phone number');
                           }
                           String cleanNumber = phone.number.replaceAll(' ', '');
                           if (cleanNumber.length != 10) {
-                            return 'Please enter exactly 10 digits';
+                            return translator.translate('Please enter exactly 10 digits');
                           }
                           return null;
                         },
@@ -246,7 +250,7 @@ class _login_pageState extends State<login_page> {
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: const Color(0xFF161B22),
-                          hintText: 'Enter your Phone Number',
+                          hintText: translator.translate('Enter your Phone Number'),
                           hintStyle: TextStyle(color: Colors.white38),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -298,7 +302,7 @@ class _login_pageState extends State<login_page> {
                                 }
                                 catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text("Storage Error: $e")),
+                                    SnackBar(content: Text("${translator.translate('Storage Error:')} $e")),
                                   );
                                 }
 
@@ -313,7 +317,7 @@ class _login_pageState extends State<login_page> {
                             ),
                           ),
                           child: Text(
-                            "Send OTP!",
+                            translator.translate("Send OTP!"),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -326,11 +330,12 @@ class _login_pageState extends State<login_page> {
 
                       // Expansion of the new sign in method using the Google OAuth
                       Row(
-                        children: const [
+                        children: [
                           Expanded(child: Divider(color: Colors.white24, thickness: 1)),
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: 16),
-                            child: Text("OR", style: TextStyle(color: Colors.white54)),
+                            // --- TRANSLATED DIVIDER ---
+                            child: Text(translator.translate("OR"), style: TextStyle(color: Colors.white54)),
                           ),
                           Expanded(child: Divider(color: Colors.white24, thickness: 1)),
                         ],
@@ -345,8 +350,9 @@ class _login_pageState extends State<login_page> {
                         height: 55,
                         child: OutlinedButton.icon(
                           icon: const Icon(Icons.g_mobiledata, color: Colors.white, size: 32),
-                          label: const Text(
-                            "Continue with Google",
+                          label: Text(
+                            // --- TRANSLATED BUTTON ---
+                            translator.translate("Continue with Google"),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -362,7 +368,7 @@ class _login_pageState extends State<login_page> {
                           ),
 
                           // Calling the function that take care of the sign in through the google auth
-                          onPressed:  _signInWithGoogle,
+                          onPressed: () => _signInWithGoogle(translator),
                             // toastification.show(
                             //   context: context,
                             //   type: ToastificationType.error,

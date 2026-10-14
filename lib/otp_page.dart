@@ -5,6 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:multi_page_ev_charge/home_page.dart';
 import 'package:multi_page_ev_charge/user_details_page.dart';
+import 'package:provider/provider.dart';
+import 'locale_provider.dart';
 
 
 class otp_page extends StatefulWidget {
@@ -28,7 +30,7 @@ class _otp_pageState extends State<otp_page> {
   bool _isLoading = false;
 
   // The whole OTP validation part
-  Future<void> _verifyOtp() async {
+  Future<void> _verifyOtp(DynamicTranslationProvider translator) async {
     setState(() => _isLoading = true);
     // this is the start of the verification process
     // trying to verify the OTP
@@ -53,7 +55,7 @@ class _otp_pageState extends State<otp_page> {
         // If this is the first time user then we will move the user directly to the home page
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const home_page(title: "Select your EV")),
+          MaterialPageRoute(builder: (context) => home_page(title: translator.translate("Select your EV"))),
         );
       } else {
         // New user now move the user to the user profile page to put in the required details
@@ -68,7 +70,7 @@ class _otp_pageState extends State<otp_page> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Error: $e"),
+          content: Text("${translator.translate('Error:')} $e"),
           backgroundColor: Colors.redAccent,
           duration: const Duration(seconds: 4),
         ),
@@ -82,14 +84,14 @@ class _otp_pageState extends State<otp_page> {
   // this is the function that helps to first validate the OTP
   // and then authenticating with the firebase
 
-  void _handleVerifySubmit() {
+  void _handleVerifySubmit(DynamicTranslationProvider translator) {
     if (_formKey.currentState!.validate()) {
-      _verifyOtp();
+      _verifyOtp(translator);
     }
   }
 
   // returns the UI based on the condition
-  Widget _buildButtonChild() {
+  Widget _buildButtonChild(DynamicTranslationProvider translator) {
     // already clicked the button and the firebase is checking in the background
     if (_isLoading) {
       return const SizedBox(
@@ -100,8 +102,8 @@ class _otp_pageState extends State<otp_page> {
     }
 
     // If not loading, show the normal text
-    return const Text(
-      "Verify & Continue",
+    return Text(
+      translator.translate("Verify & Continue"),
       style: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,
@@ -112,6 +114,7 @@ class _otp_pageState extends State<otp_page> {
 
   @override
   Widget build(BuildContext context) {
+    final translator = Provider.of<DynamicTranslationProvider>(context);
     final defaultPinTheme = PinTheme(
         width: 48,
         height: 60,
@@ -161,8 +164,7 @@ class _otp_pageState extends State<otp_page> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(height: 100),
-                      Text(
-                        "Verify Your Number",
+                      Text(translator.translate("Verify Your Number"),
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -170,8 +172,7 @@ class _otp_pageState extends State<otp_page> {
                         ),
                       ),
                       SizedBox(height: 8),
-                      Text(
-                        "Enter The 6-Digit OTP code",
+                      Text(translator.translate("Enter The 6-Digit OTP code"),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -190,7 +191,7 @@ class _otp_pageState extends State<otp_page> {
                           errorPinTheme: errorPinTheme,
                           validator: (pin) {
                             if (pin == null || !RegExp(r'^\d{6}$').hasMatch(pin)) {
-                              return 'Please enter all 6 digits';
+                              return translator.translate('Please enter all 6 digits');
                             }
 
                             return null;
@@ -222,7 +223,7 @@ class _otp_pageState extends State<otp_page> {
                         child: ElevatedButton(
 
                           // Additional chek for the is_loading check
-                          onPressed: _isLoading ? null : _handleVerifySubmit,
+                          onPressed: _isLoading ? null : () => _handleVerifySubmit(translator),
 
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF2563EB),
@@ -233,7 +234,7 @@ class _otp_pageState extends State<otp_page> {
 
                           // Calling the Custom Widget to get the hold of the cleaner UI,
                           // It returns the UI based on the condition'
-                          child: _buildButtonChild(),
+                          child: _buildButtonChild(translator),
 
                         ),
                       ),
@@ -243,11 +244,11 @@ class _otp_pageState extends State<otp_page> {
                       Center(
                         child: RichText(
                           text: TextSpan(
-                            text: "Didn't receive the code? ",
+                            text: translator.translate("Didn't receive the code? "),
                             style: TextStyle(color: Colors.white54, fontSize: 14),
                             children: [
                               TextSpan(
-                                text: "Resend OTP (30s)",
+                                text: translator.translate("Resend OTP (30s)"),
                                 style: TextStyle(
                                   color: const Color(0xFF2563EB),
                                   fontWeight: FontWeight.bold,

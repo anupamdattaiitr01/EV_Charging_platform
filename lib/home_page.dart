@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:multi_page_ev_charge/dash_board.dart';
 import 'package:provider/provider.dart';
 import 'wallet_provider.dart';
+import 'locale_provider.dart';
 
 class home_page extends StatefulWidget {
   const home_page({super.key, required this.title});

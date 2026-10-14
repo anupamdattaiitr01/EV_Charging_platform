@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:multi_page_ev_charge/login_page.dart';
+import 'package:provider/provider.dart';
+import 'locale_provider.dart';
 
 // Widget Class that is created and deleted again and again
 // Light weight Blue print
@@ -25,46 +27,6 @@ class _getstarted_pageState extends State<getstarted_page> {
   // Dart Code <==> Computer Hardware
   final PageController _pageController = PageController();
 
-  //
-  // final List<Map<String, String>> onboardingData = [
-  //   {
-  //     'image': 'assets/images/Car.png',
-  //     'title': 'Power Your Electric Drive',
-  //     'subtitle': 'Fast, Reliable Charging Built For 4-Wheeler EV Vehicles',
-  //   },
-  //   {
-  //     'image': 'assets/images/Evstation.png',
-  //     'title': 'Find DC Fast Chargers\nNear You',
-  //     'subtitle': 'Locate Available CCS2 Chargers With Real-Time Status And Parking Availability',
-  //   },
-  //   {
-  //     'image': 'assets/images/Chargingcar.png',
-  //     'title': 'Charge. Track. Pay\nSecurely.',
-  //     'subtitle': 'Monitor Live KWh, Control Sessions, And Pay Instantly With Wallet Or UPI',
-  //   },
-  // ];
-
-  // the New inbuilt custom data class list
-  // it ensures type safety
-  // introduces null safety
-  // Prevents accidental mistype of the variable names
-  final List<OnboardingContent> onboardingData = [
-    const OnboardingContent(
-      image: 'assets/images/Car.png',
-      title: 'Power Your Electric Drive',
-      subtitle: 'Fast, Reliable Charging Built For 4-Wheeler EV Vehicles',
-    ),
-    const OnboardingContent(
-      image: 'assets/images/Evstation.png',
-      title: 'Find DC Fast Chargers\nNear You',
-      subtitle: 'Locate Available CCS2 Chargers With Real-Time Status And Parking Availability',
-    ),
-    const OnboardingContent(
-      image: 'assets/images/Chargingcar.png',
-      title: 'Charge. Track. Pay\nSecurely.',
-      subtitle: 'Monitor Live KWh, Control Sessions, And Pay Instantly With Wallet Or UPI',
-    ),
-  ];
 
   @override
   void dispose() {
@@ -77,6 +39,29 @@ class _getstarted_pageState extends State<getstarted_page> {
 
   @override
   Widget build(BuildContext context) {
+    final translator = Provider.of<DynamicTranslationProvider>(context);
+    // the New inbuilt custom data class list
+    // it ensures type safety
+    // introduces null safety
+    // Prevents accidental mistype of the variable names
+    final List<OnboardingContent> onboardingData = [
+      OnboardingContent(
+        image: 'assets/images/Car.png',
+        title: translator.translate('Power Your Electric Drive'),
+        subtitle: translator.translate('Fast, Reliable Charging Built For 4-Wheeler EV Vehicles'),
+      ),
+      OnboardingContent(
+        image: 'assets/images/Evstation.png',
+        title: translator.translate('Find DC Fast Chargers\nNear You'),
+        subtitle: translator.translate('Locate Available CCS2 Chargers With Real-Time Status And Parking Availability'),
+      ),
+      OnboardingContent(
+        image: 'assets/images/Chargingcar.png',
+        title: translator.translate('Charge. Track. Pay Securely.'),
+        subtitle: translator.translate('Monitor Live KWh, Control Sessions, And Pay Instantly With Wallet Or UPI'),
+      ),
+    ];
+
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A0A),
       body: Stack(
@@ -114,27 +99,56 @@ class _getstarted_pageState extends State<getstarted_page> {
             child: Column(
               children: [
 
-                // Skip Button is present only in first and second page
-                if (curr_ind < 2)
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 16.0, top: 8.0),
-                      child: TextButton(
-                        onPressed: () {
-                          _pageController.animateToPage(
-                            2,
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.easeInOut,
+
+                Padding(
+                  padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Language Switcher Toggle
+                      Consumer<DynamicTranslationProvider>(
+                        builder: (context, localeProvider, child) {
+                          final isHindi = localeProvider.currentLanguage == 'hi';
+                          return TextButton.icon(
+                            style: TextButton.styleFrom(
+                              backgroundColor: Colors.white10,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            ),
+                            icon: const Icon(Icons.language, color: Colors.white70, size: 18),
+                            label: Text(
+                              isHindi ? 'हिन्दी' : 'English',
+                              style: const TextStyle(color: Colors.white, fontSize: 14),
+                            ),
+                            onPressed: () {
+                              localeProvider.setLanguage(isHindi ? 'en' : 'hi');
+                            },
                           );
                         },
-                        child: Text(
-                          "Skip",
-                          style: TextStyle(color: Colors.white70, fontSize: 16),
-                        ),
                       ),
-                    ),
+
+                      // Skip Button
+                      if (curr_ind < 2)
+                        TextButton(
+                          onPressed: () {
+                            _pageController.animateToPage(
+                              2,
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeInOut,
+                            );
+                          },
+                          child: const Text(
+                            "Skip",
+                            style: TextStyle(color: Colors.white70, fontSize: 16),
+                          ),
+                        )
+                      else
+                        const SizedBox(width: 60), // Keeps spacing balanced when Skip disappears
+                    ],
                   ),
+                ),
 
 
                 Expanded(
@@ -231,8 +245,8 @@ class _getstarted_pageState extends State<getstarted_page> {
                                 );
                               },
                               child: Text(
-                                "Go to the Login Page",
-                                style: TextStyle(
+                                translator.translate("Go to the Login Page"),
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,

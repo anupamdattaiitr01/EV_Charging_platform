@@ -30,9 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_localizations:
-    sdk: flutter
-  intl: ^0.20.3
+  translator: ^1.0.4+1
   intl_phone_field: ^3.2.0
   pinput: ^4.0.0
   shared_preferences: ^2.2.3
@@ -74,18 +72,19 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  uses-material-design: true
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
-  uses-material-design: true
-  generate: true
+  # uses-material-design: true
+  # generate: true
 
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
     - .env
-
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

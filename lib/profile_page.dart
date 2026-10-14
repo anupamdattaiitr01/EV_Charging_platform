@@ -4,7 +4,6 @@ import 'package:firebase_database/firebase_database.dart';
 import 'user_details_page.dart';
 import 'login_page.dart';
 import 'user_manual_page.dart';
-import 'l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'locale_provider.dart';
 
@@ -36,6 +35,7 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final translator = Provider.of<DynamicTranslationProvider>(context);
     const cardBgColor = Color(0xFF161B22);
     const brandBlue = Color(0xFF2563EB);
     print ('Build function for the Profile page is called!');
@@ -69,23 +69,20 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        "Profile",
-                        style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-                      ),
-                      Consumer<LocaleProvider>(
+                      Text(translator.translate("Profile"), style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                      Consumer<DynamicTranslationProvider>(
                         builder: (context, localeProvider, child) {
-                          return DropdownButton<Locale>(
-                            value: localeProvider.locale,
+                          return DropdownButton<String>(
+                            value: localeProvider.currentLanguage,
                             dropdownColor: const Color(0xFF161B22),
                             icon: const Icon(Icons.language, color: Colors.white70, size: 24),
                             underline: const SizedBox(),
                             items: const [
-                              DropdownMenuItem(value: Locale('en'), child: Text("English", style: TextStyle(color: Colors.white, fontSize: 14))),
-                              DropdownMenuItem(value: Locale('hi'), child: Text("हिंदी", style: TextStyle(color: Colors.white, fontSize: 14))),
+                              DropdownMenuItem(value: 'en', child: Text("English", style: TextStyle(color: Colors.white, fontSize: 14))),
+                              DropdownMenuItem(value: 'hi', child: Text("हिंदी", style: TextStyle(color: Colors.white, fontSize: 14))),
                             ],
-                            onChanged: (Locale? newLocale) {
-                              if (newLocale != null) localeProvider.setLocale(newLocale);
+                            onChanged: (String? newLanguage) {
+                              if (newLanguage != null) localeProvider.setLanguage(newLanguage);
                             },
                           );
                         },
@@ -203,8 +200,8 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
                           },
                         ),
                         const SizedBox(height: 24),
-      
-                        const Text("My Vehicles", style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+
+                        Text(translator.translate("My Vehicles"), style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 12),
                         Container(
                           padding: const EdgeInsets.all(20),
@@ -217,14 +214,14 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
                             children: [
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const [
-                                  Text("Car Name", style: TextStyle(color: Colors.white38, fontSize: 12)),
+                                children: [
+                                  Text(translator.translate("Car Name"), style: const TextStyle(color: Colors.white38, fontSize: 12)),
                                   SizedBox(height: 4),
-                                  Text("Tata Nexon EV", style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                                  Text(translator.translate("TATA Nexon EV"), style: const TextStyle(color: Colors.white38, fontSize: 12)),
                                   SizedBox(height: 12),
-                                  Text("Connector", style: TextStyle(color: Colors.white38, fontSize: 12)),
+                                  Text(translator.translate("Connector"), style: const TextStyle(color: Colors.white38, fontSize: 12)),
                                   SizedBox(height: 4),
-                                  Text("CCS2", style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                                  Text(translator.translate("CCS2"), style: const TextStyle(color: Colors.white38, fontSize: 12)),
                                 ],
                               ),
                               Row(
@@ -248,15 +245,12 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
                               side: const BorderSide(color: Color(0xFF1E3A8A)), // Dark blue border
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
-                            child: const Text(
-                              "Add New Vehicle",
-                              style: TextStyle(color: brandBlue, fontSize: 14, fontWeight: FontWeight.bold),
-                            ),
+                            child: Text(translator.translate("Add New Vehicle"), style: const TextStyle(color: brandBlue, fontSize: 14, fontWeight: FontWeight.bold)),
                           ),
                         ),
                         const SizedBox(height: 24),
-      
-                        const Text("Payment Method", style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+
+                        Text(translator.translate("Payment Method"), style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 12),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -275,10 +269,11 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: const [
-                                    Text("Saved Cards / UPI", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)), //[cite: 4]
+                                  children: [
+                                    Text(translator.translate("Saved Cards / UPI"), style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+// ...
                                     SizedBox(height: 2),
-                                    Text("Manage Payment Options", style: TextStyle(color: Colors.white54, fontSize: 12)), //[cite: 4]
+                                    Text(translator.translate("Manage Payment Options"), style: const TextStyle(color: Colors.white54, fontSize: 12)),
                                   ],
                                 ),
                               ),
@@ -295,17 +290,17 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
                           ),
                           child: Column(
                             children: [
-                              _buildMenuTile(Icons.history, AppLocalizations.of(context)!.chargingHistory),
+                              _buildMenuTile(Icons.history, translator.translate("Charging History")),
                               const Divider(color: Colors.white10, height: 1, indent: 16, endIndent: 16),
-                              _buildMenuTile(Icons.account_balance_wallet_outlined, AppLocalizations.of(context)!.wallet),
+                              _buildMenuTile(Icons.account_balance_wallet_outlined, translator.translate("Wallet")),
                               const Divider(color: Colors.white10, height: 1, indent: 16, endIndent: 16),
-                              _buildMenuTile(Icons.notifications_none, AppLocalizations.of(context)!.notifications),
+                              _buildMenuTile(Icons.notifications_none, translator.translate("Notifications")),
                               const Divider(color: Colors.white10, height: 1, indent: 16, endIndent: 16),
-                              _buildMenuTile(Icons.help_outline, AppLocalizations.of(context)!.helpSupport),
+                              _buildMenuTile(Icons.help_outline, translator.translate("Help & Support")),
                               const Divider(color: Colors.white10, height: 1, indent: 16, endIndent: 16),
                               _buildMenuTile(
                                 Icons.menu_book,
-                                AppLocalizations.of(context)!.userManual,
+                                translator.translate("User Manual"),
                                 onTap: () {
                                   Navigator.push(
                                     context,
@@ -363,7 +358,7 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
                             },
                             icon: const Icon(Icons.logout, color: Colors.redAccent, size: 20),
                             label: Text(
-                              AppLocalizations.of(context)!.logOut,
+                              translator.translate("Log Out"),
                               style: const TextStyle(
                                 color: Colors.redAccent,
                                 fontSize: 15,
