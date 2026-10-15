@@ -6,6 +6,8 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:provider/provider.dart';
+import 'locale_provider.dart';
 
 class UserDetailsPage extends StatefulWidget {
   // this map stores the existing data if present
@@ -24,6 +26,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _dlController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _extraController = TextEditingController();
   bool _isLoading = false;
@@ -43,6 +46,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     if (widget.existingData != null) {
       _nameController.text = widget.existingData!['name'] ?? "";
       _phoneController.text = widget.existingData!['phone'] ?? _phoneController.text;
+      _emailController.text = widget.existingData!['email'] ?? "";
       _dlController.text = widget.existingData!['dl_number'] ?? "";
       _addressController.text = widget.existingData!['address'] ?? "";
       _extraController.text = widget.existingData!['additional_info'] ?? "";
@@ -110,6 +114,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
       await ref.set({
         "name": _nameController.text.trim(),
         "phone": _phoneController.text.trim(),
+        "email": _emailController.text.trim(),
         "dl_number": _dlController.text.trim(),
         "address": _addressController.text.trim(),
         "additional_info": _extraController.text.trim(),
@@ -169,13 +174,14 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final translator = Provider.of<DynamicTranslationProvider>(context);
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A0A),
       appBar:
       AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text(widget.isEditing ? "Edit Profile" : "Complete Profile", style: const TextStyle(color: Colors.white)),
+        title: Text(widget.isEditing ? translator.translate("Edit Profile") : translator.translate("Complete Profile"), style: const TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
 
@@ -201,10 +207,10 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("User Details", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
+                  Text(translator.translate("User Details"), style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
                   const SizedBox(height: 8),
                   Text(
-                    widget.isEditing ? "Update your personal information below." : "Please provide your details to continue.",
+                    widget.isEditing ? translator.translate("Update your personal information below.") : translator.translate("Please provide your details to continue."),
                     style: const TextStyle(color: Colors.white70, fontSize: 16),
                   ),
                   const SizedBox(height: 32),
@@ -244,9 +250,10 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                   ),
                   const SizedBox(height: 28),
 
-                  _buildTextField(_nameController, "Full Name (Required)", isRequired: true),
-                  _buildTextField(_phoneController, "Phone Number", isPhone: true),
-                  _buildTextField(_dlController, "Driving License (DL) Number"),
+                  _buildTextField(_nameController, translator.translate("Full Name (Required)"), isRequired: true),
+                  _buildTextField(_phoneController, translator.translate("Phone Number"), isPhone: true),
+                  _buildTextField(_dlController, translator.translate("Driving License (DL) Number")),
+                  _buildTextField(_emailController, translator.translate("Email Address (Optional)")),
 
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16.0),
@@ -271,7 +278,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                _aadhaarFileName ?? "Upload Aadhaar Card (PDF)",
+                                _aadhaarFileName ?? translator.translate("Upload Aadhaar Card (PDF)"),
                                 style: TextStyle(
                                   color: _aadhaarFileName != null ? Colors.white : Colors.white38,
                                   fontSize: 15,
@@ -286,8 +293,8 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                     ),
                   ),
 
-                  _buildTextField(_addressController, "Full Address"),
-                  _buildTextField(_extraController, "Additional Information (Optional)"),
+                  _buildTextField(_addressController, translator.translate("Full Address")),
+                  _buildTextField(_extraController, translator.translate("Additional Information (Optional)")),
 
                   const SizedBox(height: 24),
                   SizedBox(
@@ -301,7 +308,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                       ),
                       child: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : Text(widget.isEditing ? "Update Details" : "Save & Continue",
+                          : Text(widget.isEditing ? translator.translate("Update Details") : translator.translate("Save & Continue"),
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                     ),
                   ),

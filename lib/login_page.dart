@@ -117,12 +117,21 @@ class _login_pageState extends State<login_page> {
       if (!snapshot.exists) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const UserDetailsPage()),
+          MaterialPageRoute(
+            builder: (context) => UserDetailsPage(
+              existingData: {
+                'name': googleUser.displayName ?? '',
+                'email': googleUser.email,
+                'profile_image_url': googleUser.photoUrl ?? '',
+              },
+              isEditing: false, // This tells the page it's a new registration, not a profile edit
+            ),
+          ),
         );
       } else {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const home_page(title: "Select your EV")),
+          MaterialPageRoute(builder: (context) => home_page(title: translator.translate("Select your EV"))),
         );
       }
 
