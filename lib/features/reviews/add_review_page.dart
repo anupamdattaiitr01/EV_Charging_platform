@@ -51,26 +51,22 @@ class _AddReviewPageState extends State<AddReviewPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "Testing Media Players",
+                  Text(
+                    translator.translate("Testing Media Players"),
                     style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "This page bypasses the database to test if the video and audio players can stream external URLs successfully on your device.",
-                    style: TextStyle(color: Colors.white54, fontSize: 14),
-                  ),
+
                   const SizedBox(height: 32),
 
                   // 1. Render the Video Player directly
-                  const Text("Video Player Test:", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text(translator.translate("Video Player Test:"), style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
                   VideoReviewPlayer(videoUrl: testVideoUrl),
 
                   const SizedBox(height: 40),
 
                   // 2. Render the Audio Player directly
-                  const Text("Audio Player Test:", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text(translator.translate("Audio Player Test:"), style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
                   AudioReviewPlayer(audioUrl: testAudioUrl),
                 ],

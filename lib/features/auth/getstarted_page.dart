@@ -2,43 +2,67 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'login_page.dart';
 import '../../core/providers/locale_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+class OnboardingCubit extends Cubit<int> {
+  // We start with an initial state of 0 (the first page)
+  OnboardingCubit() : super(0);
+
+  // Instead of setState, the UI will call this method
+  void updatePage(int index) {
+    print('Bloc builder is being called!');
+    emit(index); // 'emit' pushes the new state to the UI safely
+  }
+}
+
+// Custom data Class for clean code
+class OnboardingContent {
+  final String image;
+  final String title;
+  final String subtitle;
+
+  // The constructor requires all three fields so you can never forget one
+  // this ensures the NULL safety
+  const OnboardingContent({
+    required this.image,
+    required this.title,
+    required this.subtitle,
+  });
+}
 
 // Widget Class that is created and deleted again and again
 // Light weight Blue print
-class getstarted_page extends StatefulWidget {
+class GetStartedPage extends StatelessWidget {
+  const GetStartedPage({super.key});
   // this is the immutable class,
   // this is the widget that is build again and again when we change the state or loads the program
 
   @override
-  State<getstarted_page> createState() => _getstarted_pageState();
+  Widget build(BuildContext context) {
+    // We provide the Cubit to this specific screen
+    return BlocProvider(
+      create: (context) => OnboardingCubit(),
+      child: const _GetStartedView(),
+    );
+  }
   // this CreateState() method is called only once when the first birth occurs
   // When something in the state changes it is not called again as the state object is already there in the memory
 }
 
 
 // State Object that persist through the memory
-class _getstarted_pageState extends State<getstarted_page> {
+class _GetStartedView extends StatelessWidget {
+  const _GetStartedView({super.key});
   // this is the indesteructable claas that can store the details that are persistent
-
-  int curr_ind = 0;
-
-  // Controller object that acts a bridge between the pageView and the computer hardware
-  // act as a remote control
-  // Dart Code <==> Computer Hardware
-  final PageController _pageController = PageController();
-
-
-  @override
-  void dispose() {
-
-    // Controller object is heavy and silently takes up the memory
-    // So we need to clear that space once the page is wipped out
-    _pageController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
+    print('OnBoarding page is being built');
+    // Controller object that acts a bridge between the pageView and the computer hardware
+    // act as a remote control
+    // Dart Code <==> Computer Hardware
+    final PageController _pageController = PageController();
+
     final translator = Provider.of<DynamicTranslationProvider>(context);
     // the New inbuilt custom data class list
     // it ensures type safety
@@ -54,6 +78,11 @@ class _getstarted_pageState extends State<getstarted_page> {
         image: 'assets/images/Evstation.png',
         title: translator.translate('Find DC Fast Chargers\nNear You'),
         subtitle: translator.translate('Locate Available CCS2 Chargers With Real-Time Status And Parking Availability'),
+      ),
+      OnboardingContent(
+        image: 'assets/images/Chargingcar.png',
+        title: translator.translate('Charge. Track. Pay Securely.'),
+        subtitle: translator.translate('Monitor Live KWh, Control Sessions, And Pay Instantly With Wallet Or UPI'),
       ),
       OnboardingContent(
         image: 'assets/images/Chargingcar.png',
@@ -130,22 +159,26 @@ class _getstarted_pageState extends State<getstarted_page> {
                       ),
 
                       // Skip Button
-                      if (curr_ind < 2)
-                        TextButton(
-                          onPressed: () {
-                            _pageController.animateToPage(
-                              2,
-                              duration: const Duration(milliseconds: 500),
-                              curve: Curves.easeInOut,
-                            );
-                          },
-                          child: const Text(
-                            "Skip",
-                            style: TextStyle(color: Colors.white70, fontSize: 16),
-                          ),
-                        )
-                      else
-                        const SizedBox(width: 60), // Keeps spacing balanced when Skip disappears
+                      BlocBuilder<OnboardingCubit, int>(
+                          builder: (context, currentIndex) {
+                            if (currentIndex < 2) {
+                              return TextButton(
+                                onPressed: () {
+                                  _pageController.animateToPage(
+                                    2,
+                                    duration: const Duration(milliseconds: 500),
+                                    curve: Curves.easeInOut,
+                                  );
+                                },
+                                child: const Text(
+                                  "Skip",
+                                  style: TextStyle(color: Colors.white70, fontSize: 16),
+                                ),
+                              );
+                            }
+                            return const SizedBox(width: 60);
+                          }
+                      ),
                     ],
                   ),
                 ),
@@ -162,11 +195,8 @@ class _getstarted_pageState extends State<getstarted_page> {
 
                     // changing the current state of the index
                     onPageChanged: (int index) {
-                      setState(() {
-                        curr_ind = index;
-                        print('Current Page number is $curr_ind');
-                      });
-                      // curr_ind = index;
+                      // Tell the Cubit to update the state!
+                      context.read<OnboardingCubit>().updatePage(index);
                     },
 
                     itemBuilder: (context, index) {
@@ -216,54 +246,52 @@ class _getstarted_pageState extends State<getstarted_page> {
 
                 Padding(
                   padding: const EdgeInsets.only(bottom: 40.0),
-                  child: Column(
-                    children: [
-
-                      // this is shown only in the last page of the get started page
-                      // Divert the page to the log in page
-                      if (curr_ind == 2) ...[
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                          child: SizedBox(
-                            width: double.infinity,
-                            height: 50,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF2563EB),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                              ),
-
-                              // Navigation to the log in page
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => login_page(),
+                  child: BlocBuilder<OnboardingCubit, int>(
+                      builder: (context, currentIndex) {
+                        return Column(
+                          children: [
+                            if (currentIndex == 2) ...[
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  height: 50,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF2563EB),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(15),
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => login_page(),
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                      translator.translate("Go to the Login Page"),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                   ),
-                                );
-                              },
-                              child: Text(
-                                translator.translate("Go to the Login Page"),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        SizedBox(height: 20),
-                      ]
-                      else ...[
-
-                        SizedBox(height: 86),
-                      ],
-                      row(curr_ind),
-                    ],
+                              const SizedBox(height: 36),
+                            ]
+                            else ...[
+                              const SizedBox(height: 86),
+                            ],
+                            // Use the Cubit's state here instead of curr_ind
+                            row(currentIndex),
+                          ],
+                        );
+                      }
                   ),
                 ),
               ],
@@ -298,19 +326,4 @@ Widget row(int curr_page) {
         Icon(Icons.circle, size: 10, color: Colors.white30),
     ],
   );
-}
-
-// Custom data Class for clean code
-class OnboardingContent {
-  final String image;
-  final String title;
-  final String subtitle;
-
-  // The constructor requires all three fields so you can never forget one
-  // this ensures the NULL safety
-  const OnboardingContent({
-    required this.image,
-    required this.title,
-    required this.subtitle,
-  });
 }
