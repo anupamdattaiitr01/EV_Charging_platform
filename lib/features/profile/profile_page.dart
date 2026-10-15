@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'user_details_page.dart';
-import 'login_page.dart';
+import '../auth/user_details_page.dart';
+import '../auth/login_page.dart';
 import 'user_manual_page.dart';
 import 'package:provider/provider.dart';
-import 'locale_provider.dart';
+import '../../core/providers/locale_provider.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});

@@ -3,10 +3,10 @@ import 'package:pinput/pinput.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:multi_page_ev_charge/home_page.dart';
-import 'package:multi_page_ev_charge/user_details_page.dart';
 import 'package:provider/provider.dart';
-import 'locale_provider.dart';
+import '../dashboard/home_page.dart';
+import '../../core/providers/locale_provider.dart';
+import 'user_details_page.dart';
 
 
 class otp_page extends StatefulWidget {

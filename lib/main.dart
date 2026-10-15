@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:multi_page_ev_charge/getstarted_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'firebase_options.dart';
-import 'wallet_provider.dart';
-import 'locale_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'features/auth/getstarted_page.dart';
+import 'features/wallet/wallet_provider.dart';
+import 'core/providers/locale_provider.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

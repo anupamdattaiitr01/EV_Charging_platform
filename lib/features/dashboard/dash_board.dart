@@ -4,15 +4,15 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'map_page.dart';
-import 'select_gun_page.dart';
-import 'charging_progress_page.dart';
-import 'charging_summary_page.dart';
-import 'charging_history_page.dart';
-import 'wallet_page.dart';
-import 'profile_page.dart';
-import 'locale_provider.dart';
+import '../map/map_page.dart';
+import '../charging/select_gun_page.dart';
+import '../charging/charging_progress_page.dart';
+import '../charging/charging_summary_page.dart';
+import '../charging/charging_history_page.dart';
+import '../wallet/wallet_page.dart';
+import '../profile/profile_page.dart';
 import 'package:provider/provider.dart';
+import '../../core/providers/locale_provider.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});

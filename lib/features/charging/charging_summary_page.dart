@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dash_board.dart';
+import '../dashboard/dash_board.dart';
 import 'package:provider/provider.dart';
-import 'locale_provider.dart';
+import '../../core/providers/locale_provider.dart';
 
 class ChargingSummaryPage extends StatelessWidget {
   const ChargingSummaryPage({super.key});

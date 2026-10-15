@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'charging_progress_page.dart';
 import 'package:provider/provider.dart';
-import 'locale_provider.dart';
+import '../../core/providers/locale_provider.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'add_review_page.dart';
-import 'review_media_players.dart';
+import '../reviews/add_review_page.dart';
+import '../reviews/review_media_players.dart';
 
 class SelectGunPage extends StatefulWidget {
   final VoidCallback onBackToHome;

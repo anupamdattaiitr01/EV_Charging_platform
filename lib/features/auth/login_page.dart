@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:multi_page_ev_charge/otp_page.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:multi_page_ev_charge/home_page.dart';
 import 'package:toastification/toastification.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:multi_page_ev_charge/user_details_page.dart';
-import 'package:multi_page_ev_charge/getstarted_page.dart';
 import 'package:provider/provider.dart';
-import 'locale_provider.dart';
+import 'otp_page.dart';
+import '../dashboard/home_page.dart';
+import 'user_details_page.dart';
+import 'getstarted_page.dart';
+import '../../core/providers/locale_provider.dart';
 
 class login_page extends StatefulWidget {
   @override

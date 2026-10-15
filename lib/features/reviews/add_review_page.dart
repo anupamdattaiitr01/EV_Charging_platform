@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'locale_provider.dart';
-import 'review_media_players.dart'; // Importing your player widgets!
+import '../../core/providers/locale_provider.dart';
+import 'review_media_players.dart';
 
 class AddReviewPage extends StatefulWidget {
   final String stationId;

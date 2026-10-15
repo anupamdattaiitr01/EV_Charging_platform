@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'locale_provider.dart';
+import '../../core/providers/locale_provider.dart';
 
 class ChargingHistoryPage extends StatefulWidget {
   final VoidCallback onBackToHome;

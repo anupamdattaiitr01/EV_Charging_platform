@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:multi_page_ev_charge/login_page.dart';
 import 'package:provider/provider.dart';
-import 'locale_provider.dart';
+import 'login_page.dart';
+import '../../core/providers/locale_provider.dart';
 
 // Widget Class that is created and deleted again and again
 // Light weight Blue print

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'charging_summary_page.dart';
 import 'package:provider/provider.dart';
-import 'locale_provider.dart';
+import '../../core/providers/locale_provider.dart';
 
 class ChargingProgressPage extends StatelessWidget {
   final VoidCallback onStopCharging;
