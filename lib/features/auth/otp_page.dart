@@ -4,272 +4,240 @@ import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../dashboard/home_page.dart';
 import '../../core/providers/locale_provider.dart';
 import 'user_details_page.dart';
+import 'login_page.dart'; // helps to import the auth bloc from the log in page
+import 'bloc/auth_cubit.dart';
 
-
-class otp_page extends StatefulWidget {
-  // this is the additional verification code that is required to check the OTP entered
-  // pass on from the log in page from the Firebase
-  // Only the OTP code is useless, because multiple users may get the same OTP code
-  // So we need an additional check that is passed on from the log in page
-  // as soon as the code trigger to send OTP to user
-
+// The Ui entry point
+class OtpPage extends StatelessWidget {
   final String verificationId;
-  const otp_page({super.key, required this.verificationId});
+  const OtpPage({super.key, required this.verificationId});
+
   @override
-  State<otp_page> createState() => _otp_pageState();
-}
-
-class _otp_pageState extends State<otp_page> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  // bool pos = false;
-
-  String enteredOtp = "";
-  bool _isLoading = false;
-
-  // The whole OTP validation part
-  Future<void> _verifyOtp(DynamicTranslationProvider translator) async {
-    setState(() => _isLoading = true);
-    // this is the start of the verification process
-    // trying to verify the OTP
-    try
-    {
-      PhoneAuthCredential credential = PhoneAuthProvider.credential(
-        verificationId: widget.verificationId,
-        smsCode: enteredOtp,
-      );
-
-      UserCredential userCred = await FirebaseAuth.instance.signInWithCredential(credential);
-      String uid = userCred.user!.uid;
-
-      // Check if the user already has data in the Realtime Database
-      // this is mandatory because we don't want the user to enter all the details again and again
-      // everytime after the use log in
-      DatabaseEvent event = await FirebaseDatabase.instance.ref("users/$uid").once();
-
-      if (!mounted) return;
-
-      if (event.snapshot.exists) {
-        // If this is the first time user then we will move the user directly to the home page
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => home_page(title: translator.translate("Select your EV"))),
-        );
-      } else {
-        // New user now move the user to the user profile page to put in the required details
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const UserDetailsPage()),
-        );
-      }
-    }
-    catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("${translator.translate('Error:')} $e"),
-          backgroundColor: Colors.redAccent,
-          duration: const Duration(seconds: 4),
-        ),
-      );
-    }
-    finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  // this is the function that helps to first validate the OTP
-  // and then authenticating with the firebase
-
-  void _handleVerifySubmit(DynamicTranslationProvider translator) {
-    if (_formKey.currentState!.validate()) {
-      _verifyOtp(translator);
-    }
-  }
-
-  // returns the UI based on the condition
-  Widget _buildButtonChild(DynamicTranslationProvider translator) {
-    // already clicked the button and the firebase is checking in the background
-    if (_isLoading) {
-      return const SizedBox(
-        height: 20,
-        width: 20,
-        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-      );
-    }
-
-    // If not loading, show the normal text
-    return Text(
-      translator.translate("Verify & Continue"),
-      style: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
-      ),
+  Widget build(BuildContext context) {
+    // Provide a fresh instance of the Cubit to handle the OTP verification
+    return BlocProvider(
+      create: (context) => AuthCubit(),
+      child: _OtpView(verificationId: verificationId),
     );
   }
+}
+
+typedef otp_page = OtpPage;
+
+class _OtpView extends StatefulWidget {
+  final String verificationId;
+  const _OtpView({required this.verificationId});
+
+  @override
+  State<_OtpView> createState() => _OtpViewState();
+}
+
+class _OtpViewState extends State<_OtpView> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  String enteredOtp = "";
 
   @override
   Widget build(BuildContext context) {
     final translator = Provider.of<DynamicTranslationProvider>(context);
+
     final defaultPinTheme = PinTheme(
-        width: 48,
-        height: 60,
-        textStyle: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.w600),
-        decoration: BoxDecoration(
-          color: const Color(0xFF161B22),
-          borderRadius: BorderRadius.circular(12),
-        ),
+      width: 48,
+      height: 60,
+      textStyle: const TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.w600),
+      decoration: BoxDecoration(
+        color: const Color(0xFF161B22),
+        borderRadius: BorderRadius.circular(12),
+      ),
     );
+
     final errorPinTheme = defaultPinTheme.copyDecorationWith(
       border: Border.all(color: Colors.redAccent, width: 2),
     );
-    return
-      Scaffold(
-        backgroundColor: const Color(0xFF0A0A0A),
-          extendBodyBehindAppBar: true,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-        body: Stack(
-          children: [
-            Opacity(
-              opacity: 0.5,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(30.0),
-                child: Image.asset(
-                  'assets/images/Ellipse1.png',
-                  width: 600,
-                  height: 600,
-                  fit: BoxFit.cover,
+
+    return BlocConsumer<AuthCubit, AuthState>(
+      // --- THE LISTENER: Handles Navigation and Errors ---
+        listener: (context, state) {
+          if (state is AuthError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("${translator.translate('Error:')} ${state.message}"),
+                backgroundColor: Colors.redAccent,
+                duration: const Duration(seconds: 4),
+              ),
+            );
+          } else if (state is AuthSuccess) {
+            if (state.isNewUser) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const UserDetailsPage()),
+              );
+            } else {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => home_page(title: translator.translate("Select your EV"))),
+              );
+            }
+          }
+        },
+        // --- THE BUILDER: Handles UI Painting ---
+        builder: (context, state) {
+          final bool isLoading = state is AuthLoading;
+
+          return Scaffold(
+              backgroundColor: const Color(0xFF0A0A0A),
+              extendBodyBehindAppBar: true,
+              appBar: AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
                 ),
               ),
-            ),
-
-            SafeArea(child:
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
-
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 100),
-                      Text(translator.translate("Verify Your Number"),
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+              body: Stack(
+                  children: [
+                    Opacity(
+                      opacity: 0.5,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(30.0),
+                        child: Image.asset(
+                          'assets/images/Ellipse1.png',
+                          width: 600,
+                          height: 600,
+                          fit: BoxFit.cover,
                         ),
                       ),
-                      SizedBox(height: 8),
-                      Text(translator.translate("Enter The 6-Digit OTP code"),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      SizedBox(height: 40),
+                    ),
 
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Pinput(
-                          length: 6,
-                          defaultPinTheme: defaultPinTheme,
+                    SafeArea(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 100),
+                                  Text(
+                                    translator.translate("Verify Your Number"),
+                                    style: const TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    translator.translate("Enter The 6-Digit OTP code"),
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 40),
 
-                          errorPinTheme: errorPinTheme,
-                          validator: (pin) {
-                            if (pin == null || !RegExp(r'^\d{6}$').hasMatch(pin)) {
-                              return translator.translate('Please enter all 6 digits');
-                            }
+                                  Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        Pinput(
+                                          length: 6,
+                                          defaultPinTheme: defaultPinTheme,
+                                          errorPinTheme: errorPinTheme,
+                                          validator: (pin) {
+                                            if (pin == null || !RegExp(r'^\d{6}$').hasMatch(pin)) {
+                                              return translator.translate('Please enter all 6 digits');
+                                            }
+                                            return null;
+                                          },
+                                          focusedPinTheme: defaultPinTheme.copyDecorationWith(
+                                            border: Border.all(color: const Color(0xFF2563EB), width: 2),
+                                          ),
+                                          autofocus: true,
+                                          keyboardType: TextInputType.number,
+                                          inputFormatters: [
+                                            FilteringTextInputFormatter.digitsOnly,
+                                          ],
+                                          onChanged: (pin) {
+                                            enteredOtp = pin;
+                                          },
+                                        ),
+                                      ]
+                                  ),
 
-                            return null;
-                          },
+                                  const SizedBox(height: 40),
 
-                          focusedPinTheme: defaultPinTheme.copyDecorationWith(
-                            border: Border.all(color: const Color(0xFF2563EB), width: 2),
-                          ),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: 55,
+                                    child: ElevatedButton(
+                                      // Disable button while Firebase is processing
+                                      onPressed: isLoading ? null : () {
+                                        if (_formKey.currentState!.validate()) {
+                                          // Delegate logic directly to the Cubit
+                                          context.read<AuthCubit>().verifyOTP(widget.verificationId, enteredOtp);
+                                        }
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFF2563EB),
+                                        disabledBackgroundColor: const Color(0xFF2563EB).withValues(alpha: 0.5),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                      child: isLoading
+                                          ? const SizedBox(
+                                          height: 24,
+                                          width: 24,
+                                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)
+                                      )
+                                          : Text(
+                                        translator.translate("Verify & Continue"),
+                                        style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white
+                                        ),
+                                      ),
+                                    ),
+                                  ),
 
-                          autofocus: true,
-                          keyboardType: TextInputType.number,
+                                  const SizedBox(height: 24),
 
+                                  Center(
+                                    child: RichText(
+                                      text: TextSpan(
+                                        text: translator.translate("Didn't receive the code? "),
+                                        style: const TextStyle(color: Colors.white54, fontSize: 14),
+                                        children: [
+                                          TextSpan(
+                                            text: translator.translate("Resend OTP (30s)"),
+                                            style: const TextStyle(
+                                              color: Color(0xFF2563EB),
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
 
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-
-                          onChanged: (pin) {
-                            enteredOtp = pin;
-                          },
-                        ),]
-                      ),
-
-                      SizedBox(height: 40),
-
-                      SizedBox(
-                        width: double.infinity,
-                        height: 55,
-                        child: ElevatedButton(
-
-                          // Additional chek for the is_loading check
-                          onPressed: _isLoading ? null : () => _handleVerifySubmit(translator),
-
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2563EB),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                                  const Spacer(),
+                                ]
                             ),
                           ),
-
-                          // Calling the Custom Widget to get the hold of the cleaner UI,
-                          // It returns the UI based on the condition'
-                          child: _buildButtonChild(translator),
-
-                        ),
-                      ),
-
-                      SizedBox(height: 24),
-
-                      Center(
-                        child: RichText(
-                          text: TextSpan(
-                            text: translator.translate("Didn't receive the code? "),
-                            style: TextStyle(color: Colors.white54, fontSize: 14),
-                            children: [
-                              TextSpan(
-                                text: translator.translate("Resend OTP (30s)"),
-                                style: TextStyle(
-                                  color: const Color(0xFF2563EB),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-
-                      Spacer(),
-
-                    ]
-                ),
-              ),
-            )
-            )
-          ]
-        )
-      );
+                        )
+                    )
+                  ]
+              )
+          );
+        }
+    );
   }
 }
+
 

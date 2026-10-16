@@ -4,7 +4,8 @@ import 'login_page.dart';
 import '../../core/providers/locale_provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class OnboardingCubit extends Cubit<int> {
+class OnboardingCubit extends Cubit<int>
+{
   // We start with an initial state of 0 (the first page)
   OnboardingCubit() : super(0);
 
@@ -84,11 +85,7 @@ class _GetStartedView extends StatelessWidget {
         title: translator.translate('Charge. Track. Pay Securely.'),
         subtitle: translator.translate('Monitor Live KWh, Control Sessions, And Pay Instantly With Wallet Or UPI'),
       ),
-      OnboardingContent(
-        image: 'assets/images/Chargingcar.png',
-        title: translator.translate('Charge. Track. Pay Securely.'),
-        subtitle: translator.translate('Monitor Live KWh, Control Sessions, And Pay Instantly With Wallet Or UPI'),
-      ),
+
     ];
 
     return Scaffold(
@@ -324,6 +321,7 @@ Widget row(int curr_page) {
         Icon(Icons.circle, size: 10, color: const Color(0xFF2563EB))
       else
         Icon(Icons.circle, size: 10, color: Colors.white30),
+
     ],
   );
 }
