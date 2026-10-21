@@ -12,25 +12,25 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  debugPrint('STEP 1: Flutter initialized');
+  // debugPrint('STEP 1: Flutter initialized');
 
   try {
-    debugPrint('STEP 2: Loading .env');
+    // debugPrint('STEP 2: Loading .env');
     await dotenv.load(fileName: '.env');
-    debugPrint('STEP 3: .env loaded successfully');
+    // debugPrint('STEP 3: .env loaded successfully');
 
-    debugPrint('STEP 4: Initializing Firebase');
+    // debugPrint('STEP 4: Initializing Firebase');
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    debugPrint('STEP 5: Firebase initialized successfully');
+    // debugPrint('STEP 5: Firebase initialized successfully');
   } catch (e, stackTrace) {
-    debugPrint('STARTUP ERROR: $e');
-    debugPrintStack(stackTrace: stackTrace);
+    // debugPrint('STARTUP ERROR: $e');
+    // debugPrintStack(stackTrace: stackTrace);
     rethrow;
   }
 
-  debugPrint('STEP 6: Calling runApp');
+  // debugPrint('STEP 6: Calling runApp');
 
   runApp(
     MultiProvider(

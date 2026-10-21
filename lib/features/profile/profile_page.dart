@@ -6,6 +6,7 @@ import '../auth/login_page.dart';
 import 'user_manual_page.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/locale_provider.dart';
+import 'supported_ev_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -312,6 +313,20 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
                           ),
                         ),
                         const SizedBox(height: 30),
+
+                        ListTile(
+                          leading: const Icon(Icons.electric_car, color: Colors.white70),
+                          title: const Text('Supported EV Models', style: TextStyle(color: Colors.white)),
+                          trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white38, size: 16),
+
+                          // ADD THE CODE HERE:
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const SupportedEVPage()),
+                            );
+                          },
+                        ),
                         const SizedBox(height: 24),
 
                         SizedBox(

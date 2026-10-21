@@ -4,18 +4,21 @@ import 'login_page.dart';
 import '../../core/providers/locale_provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+// The brain of the code, that helps in navigating the context
+// change the index
 class OnboardingCubit extends Cubit<int>
 {
-  // We start with an initial state of 0 (the first page)
+  // We start with an initial state of 0 -- The first page of the onboarding page
   OnboardingCubit() : super(0);
 
   // Instead of setState, the UI will call this method
   void updatePage(int index) {
-    print('Bloc builder is being called!');
+    debugPrint('Bloc builder is being called!');
     emit(index); // 'emit' pushes the new state to the UI safely
   }
 }
 
+// THE DATA MODEL
 // Custom data Class for clean code
 class OnboardingContent {
   final String image;
