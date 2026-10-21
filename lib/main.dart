@@ -7,6 +7,8 @@ import 'features/wallet/wallet_provider.dart';
 import 'core/providers/locale_provider.dart';
 import 'firebase_options.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'features/dashboard/dash_board.dart';
 
 
 Future<void> main() async {
@@ -68,7 +70,27 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Roboto',
       ),
 
-      home: GetStartedPage(),
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          // 1. Show a loading indicator while Firebase checks local storage
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(color: Color(0xFF2563EB)),
+              ),
+            );
+          }
+
+          // 2. If a user session exists, navigate directly to Dashboard/Home
+          if (snapshot.hasData) {
+            return const DashboardPage(); // Replace with your Dashboard/Home widget name
+          }
+
+          // 3. Otherwise, show the starting/login screen
+          return const GetStartedPage();
+        },
+      ),
     );
   }
 }

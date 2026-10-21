@@ -34,6 +34,43 @@ class AuthError extends AuthState {
 class AuthCubit extends Cubit<AuthState> {
   AuthCubit() : super(AuthInitial());
 
+  Future<void> checkAuthStatus() async {
+    emit(AuthLoading());
+
+    try {
+      final User? currentUser = FirebaseAuth.instance.currentUser;
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? loginTimeString = prefs.getString('login_timestamp');
+
+      if (currentUser != null && loginTimeString != null) {
+        final DateTime loginTime = DateTime.parse(loginTimeString);
+        final DateTime now = DateTime.now();
+        final Duration difference = now.difference(loginTime);
+
+        // Check if the session is within 3 days (72 hours)
+        if (difference.inDays < 3) {
+          // Check if the user's data exists in Realtime Database
+          DatabaseReference userRef = FirebaseDatabase.instance.ref("users/${currentUser.uid}");
+          DataSnapshot snapshot = await userRef.get();
+
+          if (snapshot.exists) {
+            emit(AuthSuccess(isNewUser: false));
+            return;
+          }
+        } else {
+          // Session expired (> 3 days) -> sign out user automatically
+          await FirebaseAuth.instance.signOut();
+          await prefs.remove('login_timestamp');
+        }
+      }
+
+      // If no valid user or session expired
+      emit(AuthInitial());
+    } catch (e) {
+      emit(AuthInitial());
+    }
+  }
+
   // Fire base auth Code that helps to get the OTP from fire base and send it to the user
   Future<void> sendOTP(String phoneNumber) async {
     emit(AuthLoading()); // it tells the UI to show loader and disable buttons
