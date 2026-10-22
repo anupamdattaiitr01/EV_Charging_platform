@@ -10,6 +10,8 @@ import '../charging/charging_history_page.dart';
 import '../wallet/wallet_page.dart';
 import '../profile/profile_page.dart';
 import '../../core/providers/locale_provider.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:go_router/go_router.dart';
 
 // Import your new Cubit
 import 'bloc/dashboard_cubit.dart';
@@ -21,13 +23,77 @@ class DashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => DashboardCubit(),
+      // 1. Changed this back to _DashboardView()
       child: const _DashboardView(),
     );
   }
 }
 
-class _DashboardView extends StatelessWidget {
+// 2. Added the missing StatefulWidget class
+class _DashboardView extends StatefulWidget {
   const _DashboardView();
+
+  @override
+  State<_DashboardView> createState() => _DashboardViewState();
+}
+
+class _DashboardViewState extends State<_DashboardView> {
+
+  @override
+  void initState() {
+    super.initState();
+    _setupForegroundNotifications();
+  }
+
+  void _setupForegroundNotifications() {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      // Add this safety check before doing anything with the context!
+      if (!mounted) return;
+
+      if (message.notification != null) {
+        final dashboardCubit = context.read<DashboardCubit>();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF2563EB),
+            content: Text(
+              message.notification!.title ?? 'New Notification',
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            action: SnackBarAction(
+              textColor: Colors.white,
+              label: 'View',
+              onPressed: () {
+                debugPrint("=== ALL RECEIVED DATA: ${message.data} ===");
+                final String? deepLinkPath = message.data['deep_link'];
+                debugPrint("=== SNACKBAR TAPPED: $deepLinkPath ===");
+
+                if (deepLinkPath != null && deepLinkPath.isNotEmpty) {
+                  final cleanPath = deepLinkPath.trim();
+
+                  // Grab the global Cubit
+                  final dashboardCubit = context.read<DashboardCubit>();
+                  if (deepLinkPath == '/profile') {
+                    dashboardCubit.changeTab(5);
+                    _router.go('/');
+                  } else if (deepLinkPath == '/wallet') {
+                    dashboardCubit.changeTab(4);
+                  } else if (deepLinkPath == '/map') {
+                    dashboardCubit.changeTab(1);
+                  } else if (deepLinkPath == '/history') {
+                    dashboardCubit.changeTab(3);
+                  } else {
+                    context.push(deepLinkPath);
+                  }
+                }
+              },
+            ),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    });
+  }
 
   // The Builders array is generated dynamically based on the current state
   List<Widget Function(BuildContext, DashboardState)> _getPageBuilders() => [

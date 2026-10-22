@@ -2,37 +2,92 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart'; // NEW
+import 'package:go_router/go_router.dart'; // NEW
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'features/dashboard/bloc/dashboard_cubit.dart';
+import 'features/profile/profile_page.dart';
+
 import 'features/auth/getstarted_page.dart';
+import 'features/dashboard/dash_board.dart';
 import 'features/wallet/wallet_provider.dart';
 import 'core/providers/locale_provider.dart';
 import 'firebase_options.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'features/dashboard/dash_board.dart';
 
+// --- 1. Top-Level Background Notification Handler ---
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  debugPrint("Handling a background message: ${message.messageId}");
+}
+
+// --- 2. GoRouter Setup with Auth State Guard ---
+final GoRouter _router = GoRouter(
+  initialLocation: '/',
+  routes: [
+    GoRoute(
+      path: '/',
+      builder: (context, state) {
+        return StreamBuilder<User?>(
+          stream: FirebaseAuth.instance.authStateChanges(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(
+                  child: CircularProgressIndicator(color: Color(0xFF2563EB)),
+                ),
+              );
+            }
+            if (snapshot.hasData) {
+              return const DashboardPage();
+            }
+            return const GetStartedPage();
+          },
+        );
+      },
+    ),
+
+    // UNCOMMENT THIS BLOCK
+    GoRoute(
+      path: '/profile',
+      builder: (context, state) => const ProfilePage(),
+    ),
+
+    // GoRoute(
+    //   path: '/wallet',
+    //   builder: (context, state) => const WalletPage(),
+    // ),
+  ],
+);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // debugPrint('STEP 1: Flutter initialized');
-
   try {
-    // debugPrint('STEP 2: Loading .env');
     await dotenv.load(fileName: '.env');
-    // debugPrint('STEP 3: .env loaded successfully');
 
-    // debugPrint('STEP 4: Initializing Firebase');
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    // debugPrint('STEP 5: Firebase initialized successfully');
-  } catch (e, stackTrace) {
-    // debugPrint('STARTUP ERROR: $e');
-    // debugPrintStack(stackTrace: stackTrace);
+
+    // --- Register FCM background handler & request permissions ---
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    final fcmToken = await FirebaseMessaging.instance.getToken();
+    debugPrint("=== MY FCM TOKEN ===");
+    debugPrint(fcmToken);
+    debugPrint("====================");
+
+  } catch (e) {
     rethrow;
   }
-
-  // debugPrint('STEP 6: Calling runApp');
 
   runApp(
     MultiProvider(
@@ -43,20 +98,57 @@ Future<void> main() async {
         ChangeNotifierProvider(
           create: (_) => DynamicTranslationProvider(),
         ),
+
+        BlocProvider(
+          create: (_) => DashboardCubit(),
+        ),
       ],
       child: const MyApp(),
     ),
   );
 }
 
-
-class MyApp extends StatelessWidget {
+// --- 3. Stateful MyApp for Notification Listeners ---
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  State<MyApp> createState() => _MyAppState();
+}
 
-    return MaterialApp(
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    _setupNotificationRouting();
+  }
+
+  Future<void> _setupNotificationRouting() async {
+    // 1. App TERMINATED state: Launched by tapping notification
+    RemoteMessage? initialMessage =
+    await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null) {
+      _routeFromMessage(initialMessage);
+    }
+
+    // 2. App BACKGROUND state: Tapped from tray while backgrounded
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      _routeFromMessage(message);
+    });
+  }
+
+  void _routeFromMessage(RemoteMessage message) {
+    final String? deepLinkPath = message.data['deep_link'];
+    if (deepLinkPath != null && deepLinkPath.isNotEmpty) {
+      _router.go(deepLinkPath);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // --- 4. Use MaterialApp.router ---
+    return MaterialApp.router(
+      routerConfig: _router,
       debugShowCheckedModeBanner: false,
       title: 'EV Charging Platform',
       theme: ThemeData(
@@ -68,28 +160,6 @@ class MyApp extends StatelessWidget {
           surface: Color(0xFF161B22),
         ),
         fontFamily: 'Roboto',
-      ),
-
-      home: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          // 1. Show a loading indicator while Firebase checks local storage
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(color: Color(0xFF2563EB)),
-              ),
-            );
-          }
-
-          // 2. If a user session exists, navigate directly to Dashboard/Home
-          if (snapshot.hasData) {
-            return const DashboardPage(); // Replace with your Dashboard/Home widget name
-          }
-
-          // 3. Otherwise, show the starting/login screen
-          return const GetStartedPage();
-        },
       ),
     );
   }
