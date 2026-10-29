@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart'; // NEW: Imported GoRouter
+
 import '../dashboard/home_page.dart';
 import '../../core/providers/locale_provider.dart';
 import 'user_details_page.dart';
-import 'login_page.dart'; // helps to import the auth bloc from the log in page
 import 'bloc/auth_cubit.dart';
 
 // The Ui entry point
@@ -18,11 +17,9 @@ class OtpPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Provide a fresh instance of the Cubit to handle the OTP verification
-    return BlocProvider(
-      create: (context) => AuthCubit(),
-      child: _OtpView(verificationId: verificationId),
-    );
+    // FIXED: Removed the duplicate BlocProvider creation.
+    // Now it safely reads the global AuthCubit from main.dart!
+    return _OtpView(verificationId: verificationId);
   }
 }
 
@@ -70,19 +67,21 @@ class _OtpViewState extends State<_OtpView> {
               ),
             );
           } else if (state is AuthSuccess) {
+
+            // 1. If it's a brand new user, let them complete onboarding
             if (state.isNewUser) {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => const UserDetailsPage()),
               );
-            } else {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => home_page(title: translator.translate("Select your EV"))),
-              );
+            }
+            // 2. FIXED: If existing user, route to '/' so main.dart checks the role!
+            else {
+              Navigator.of(context).popUntil((route) => route.isFirst);
             }
           }
         },
+
         // --- THE BUILDER: Handles UI Painting ---
         builder: (context, state) {
           final bool isLoading = state is AuthLoading;
@@ -175,10 +174,8 @@ class _OtpViewState extends State<_OtpView> {
                                     width: double.infinity,
                                     height: 55,
                                     child: ElevatedButton(
-                                      // Disable button while Firebase is processing
                                       onPressed: isLoading ? null : () {
                                         if (_formKey.currentState!.validate()) {
-                                          // Delegate logic directly to the Cubit
                                           context.read<AuthCubit>().verifyOTP(widget.verificationId, enteredOtp);
                                         }
                                       },
@@ -239,5 +236,3 @@ class _OtpViewState extends State<_OtpView> {
     );
   }
 }
-
-

@@ -1,0 +1,39 @@
+{
+  "taxonomy": [
+    {
+      "id": "reg_north",
+      "title": "North Region (Delhi NCR)",
+      "sub_items": [
+        {
+          "id": "sta_cp",
+          "title": "Connaught Place Hub",
+          "sub_items": [
+            { "id": "gun_cp_01", "title": "Gun 1 (120kW DC)" },
+            { "id": "gun_cp_02", "title": "Gun 2 (60kW DC)" }
+          ]
+        },
+        {
+          "id": "sta_gurugram",
+          "title": "Cyber Hub Station",
+          "sub_items": [
+            { "id": "gun_ggm_01", "title": "Gun 1 (22kW AC)" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reg_south",
+      "title": "South Region (Karnataka)",
+      "sub_items": [
+        {
+          "id": "sta_blr_ind",
+          "title": "Indiranagar Fast Charge",
+          "sub_items": [
+            { "id": "gun_blr_01", "title": "Gun 1 (150kW DC)" },
+            { "id": "gun_blr_02", "title": "Gun 2 (150kW DC)" }
+          ]
+        }
+      ]
+    }
+  ]
+}

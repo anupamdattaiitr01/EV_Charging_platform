@@ -24,6 +24,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // FIXED: Kotlin DSL uses isCoreLibraryDesugaringEnabled = true
+        isCoreLibraryDesugaringEnabled = true
     }
 
     defaultConfig {
@@ -61,3 +63,8 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+    // FIXED: Kotlin DSL requires parentheses () and double quotes ""
+dependencies {
+        coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    }

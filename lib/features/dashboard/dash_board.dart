@@ -12,20 +12,30 @@ import '../profile/profile_page.dart';
 import '../../core/providers/locale_provider.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:convert';
 
 // Import your new Cubit
 import 'bloc/dashboard_cubit.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
 
+  // @override
+  // Widget build(BuildContext context) {
+  //   return BlocProvider(
+  //     create: (context) => DashboardCubit(),
+  //     // 1. Changed this back to _DashboardView()
+  //     child: const _DashboardView(),
+  //   );
+  // }
+
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => DashboardCubit(),
-      // 1. Changed this back to _DashboardView()
-      child: const _DashboardView(),
-    );
+    // Removed the local BlocProvider.
+    // It now safely reads the global instance from main.dart,
+    // preserving the tab index set by the push notification!
+    return const _DashboardView();
   }
 }
 
@@ -47,49 +57,38 @@ class _DashboardViewState extends State<_DashboardView> {
 
   void _setupForegroundNotifications() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      // Add this safety check before doing anything with the context!
       if (!mounted) return;
+      // --- NEW: Print the entire message object cleanly ---
+      debugPrint("=== FOREGROUND MESSAGE RECEIVED ===");
+      debugPrint(const JsonEncoder.withIndent('  ').convert(message.toMap()));
+      // --------------------------------------------------
 
       if (message.notification != null) {
-        final dashboardCubit = context.read<DashboardCubit>();
+        final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: const Color(0xFF2563EB),
-            content: Text(
-              message.notification!.title ?? 'New Notification',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-            action: SnackBarAction(
-              textColor: Colors.white,
-              label: 'View',
-              onPressed: () {
-                debugPrint("=== ALL RECEIVED DATA: ${message.data} ===");
-                final String? deepLinkPath = message.data['deep_link'];
-                debugPrint("=== SNACKBAR TAPPED: $deepLinkPath ===");
+        // 1. Define the Android channel (MUST match the high importance channel from main.dart)
+        const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+          'high_importance_channel',
+          'High Importance Notifications',
+          importance: Importance.max,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        );
 
-                if (deepLinkPath != null && deepLinkPath.isNotEmpty) {
-                  final cleanPath = deepLinkPath.trim();
+        const NotificationDetails notificationDetails = NotificationDetails(
+          android: androidDetails,
+        );
 
-                  // Grab the global Cubit
-                  final dashboardCubit = context.read<DashboardCubit>();
-                  if (deepLinkPath == '/profile') {
-                    dashboardCubit.changeTab(5);
-                    _router.go('/');
-                  } else if (deepLinkPath == '/wallet') {
-                    dashboardCubit.changeTab(4);
-                  } else if (deepLinkPath == '/map') {
-                    dashboardCubit.changeTab(1);
-                  } else if (deepLinkPath == '/history') {
-                    dashboardCubit.changeTab(3);
-                  } else {
-                    context.push(deepLinkPath);
-                  }
-                }
-              },
-            ),
-            duration: const Duration(seconds: 4),
-          ),
+        // 2. Grab the deep link defensively (checking for that accidental trailing space!)
+        final String? deepLinkPath = message.data['deep_link'] ?? message.data['deep_link '];
+
+        // 3. Show the native system drop-down banner
+        flutterLocalNotificationsPlugin.show(
+          id: message.notification.hashCode,          // <-- Added "id:"
+          title: message.notification!.title,         // <-- Added "title:"
+          body: message.notification!.body,           // <-- Added "body:"
+          notificationDetails: notificationDetails,   // <-- Added "notificationDetails:"
+          payload: deepLinkPath,
         );
       }
     });
