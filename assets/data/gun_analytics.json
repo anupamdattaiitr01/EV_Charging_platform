@@ -1,0 +1,26 @@
+{
+  "gun_id": "gun_001",
+  "summary": {
+    "total_cars_today": 14,
+    "total_kw_today": 485.5,
+    "revenue_today": 8740.0,
+    "hours_active_today": 16.5
+  },
+  "daily_trends": [
+    {"label": "Mon", "kw_used": 900.0, "revenue": 5760.0},
+    {"label": "Tue", "kw_used": 450.0, "revenue": 8100.0},
+    {"label": "Wed", "kw_used": 410.0, "revenue": 7380.0},
+    {"label": "Thu", "kw_used": 485.5, "revenue": 8740.0},
+    {"label": "Fri", "kw_used": 520.0, "revenue": 9360.0},
+    {"label": "Sat", "kw_used": 610.0, "revenue": 10980.0},
+    {"label": "Sun", "kw_used": 580.0, "revenue": 10440.0}
+  ],
+  "monthly_trends": [
+    {"label": "Jan", "kw_used": 12500.0, "revenue": 225000.0},
+    {"label": "Feb", "kw_used": 14200.0, "revenue": 255600.0},
+    {"label": "Mar", "kw_used": 13800.0, "revenue": 248400.0},
+    {"label": "Apr", "kw_used": 15400.0, "revenue": 277200.0},
+    {"label": "May", "kw_used": 16100.0, "revenue": 289800.0},
+    {"label": "Jun", "kw_used": 18200.0, "revenue": 327600.0}
+  ]
+}

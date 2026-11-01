@@ -70,14 +70,14 @@ class _OtpViewState extends State<_OtpView> {
 
             // 1. If it's a brand new user, let them complete onboarding
             if (state.isNewUser) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const UserDetailsPage()),
-              );
+              // --- PHASE 4 FIX: Use GoRouter to navigate to User Details ---
+              // Pass the data securely via extra to bypass the rogue stack trap!
+              context.go('/user_details', extra: state.newUserData ?? {});
             }
             // 2. FIXED: If existing user, route to '/' so main.dart checks the role!
             else {
-              Navigator.of(context).popUntil((route) => route.isFirst);
+              // Now that GoRouter owns the route, we just tell it to go to root.
+              context.go('/');
             }
           }
         },

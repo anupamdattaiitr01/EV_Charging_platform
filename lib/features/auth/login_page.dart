@@ -5,16 +5,12 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:toastification/toastification.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:provider/provider.dart';
-import 'otp_page.dart';
-import '../dashboard/home_page.dart';
-import 'user_details_page.dart';
-import 'getstarted_page.dart';
-import '../../core/providers/locale_provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'bloc/auth_cubit.dart';
+import 'package:go_router/go_router.dart';
 
+import 'bloc/auth_cubit.dart';
+import '../../core/providers/locale_provider.dart';
 
 // This is the main UI entry point and the Bloc dependency Injection
 class LoginPage extends StatelessWidget {
@@ -22,13 +18,12 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => AuthCubit(),
-      child: const _LoginView(),
-    );
+    // Safely connects to the global AuthCubit from main.dart!
+    return const _LoginView();
   }
 }
 
+// Keep typedef for backwards compatibility if you used it elsewhere
 typedef login_page = LoginPage;
 
 class _LoginView extends StatefulWidget {
@@ -55,7 +50,7 @@ class _LoginViewState extends State<_LoginView> {
   }
 
   // This establishes connection with the hard disc
-  // So this  function is called in the init even before loading the page
+  // So this function is called in the init even before loading the page
   Future<void> _loadSavedPhoneNumber() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? savedPhone = prefs.getString(_phoneKey);
@@ -91,31 +86,17 @@ class _LoginViewState extends State<_LoginView> {
             alignment: Alignment.topRight,
           );
         } else if (state is AuthCodeSent) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => otp_page(verificationId: state.verificationId),
-            ),
-          );
+          // Push OTP page via GoRouter securely
+          context.push('/otp', extra: state.verificationId);
         } else if (state is AuthSuccess) {
           if (state.isNewUser) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => UserDetailsPage(
-                  existingData: state.newUserData!,
-                  isEditing: false,
-                ),
-              ),
-            );
+            // --- PHASE 4 FIX: Use GoRouter to navigate to User Details ---
+            // This replaces the old MaterialPageRoute and passes data securely via extra!
+            context.go('/user_details', extra: state.newUserData ?? {});
           } else {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    home_page(title: translator.translate("Select your EV")),
-              ),
-            );
+            // --- PHASE 4 FIX: Clear stack and return to root Dashboard ---
+            // GoRouter takes over and automatically reads the role in main.dart
+            context.go('/');
           }
         }
       },
@@ -130,7 +111,7 @@ class _LoginViewState extends State<_LoginView> {
             elevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => context.pop(), // Replaced Navigator.pop with context.pop
             ),
           ),
           body: Stack(
@@ -258,7 +239,7 @@ class _LoginViewState extends State<_LoginView> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF2563EB),
                                 disabledBackgroundColor:
-                                const Color(0xFF2563EB).withValues(alpha: 0.5),
+                                const Color(0xFF2563EB).withOpacity(0.5),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),

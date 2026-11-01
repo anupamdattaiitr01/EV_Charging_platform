@@ -7,6 +7,8 @@ import 'user_manual_page.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/locale_provider.dart';
 import 'supported_ev_page.dart';
+import 'package:go_router/go_router.dart';
+import '../auth/bloc/auth_cubit.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -20,17 +22,15 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
   bool get wantKeepAlive => true;
 
   Future<void> _handleLogout() async {
-    // 1. Sign out of Firebase Auth session
-    await FirebaseAuth.instance.signOut();
+    // 1. Ask the AuthCubit to securely wipe the session and Firebase memory
+    await context.read<AuthCubit>().signOut();
 
     if (!mounted) return;
 
-    // 2. Clear navigation history and route back to login
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => login_page()),
-          (route) => false,
-    );
+    // 2. Tell GoRouter to go to the root.
+    // Because the Cubit is now emitting AuthInitial, the root builder in main.dart
+    // will automatically render the GetStarted/Login flow cleanly!
+    context.go('/');
   }
 
   @override

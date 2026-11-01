@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'login_page.dart';
 import '../../core/providers/locale_provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 // The brain of the code, that helps in navigating the context
 // change the index
@@ -264,12 +265,7 @@ class _GetStartedView extends StatelessWidget {
                                       ),
                                     ),
                                     onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => login_page(),
-                                        ),
-                                      );
+                                      context.push('/login');
                                     },
                                     child: Text(
                                       translator.translate("Go to the Login Page"),

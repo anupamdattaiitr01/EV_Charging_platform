@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart'; // NEW: Required for debugPrint
+import 'package:flutter/foundation.dart'; // Required for debugPrint
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -96,8 +96,7 @@ class AuthCubit extends Cubit<AuthState> {
         },
         codeAutoRetrievalTimeout: (String verificationId) {},
       );
-    }
-    catch (e) {
+    } catch (e) {
       emit(AuthError(e.toString()));
     }
   }
@@ -160,7 +159,6 @@ class AuthCubit extends Cubit<AuthState> {
 
         emit(AuthSuccess(isNewUser: false, role: cleanRole));
       }
-
     } catch (e) {
       emit(AuthError(e.toString()));
     }
@@ -218,9 +216,43 @@ class AuthCubit extends Cubit<AuthState> {
   // ------------------------------------------------------------------------
   Future<void> signOut() async {
     await FirebaseAuth.instance.signOut();
+    await GoogleSignIn().signOut(); // <-- ADD THIS LINE to clear the Google session cache
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('login_timestamp');
     emit(AuthInitial());
+  }
+
+  // ------------------------------------------------------------------------
+  // 6. SAVE NEW USER PROFILE
+  // ------------------------------------------------------------------------
+  Future<void> saveUserProfile(Map<String, dynamic> userData, String selectedRole) async {
+    emit(AuthLoading());
+
+    try {
+      final User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        emit(AuthError("No authenticated user found."));
+        return;
+      }
+
+      // 1. Prepare the data payload, forcing the role into the map
+      final Map<String, dynamic> finalData = Map<String, dynamic>.from(userData);
+      final String cleanRole = selectedRole.toLowerCase().trim();
+      finalData['role'] = cleanRole;
+      finalData['created_at'] = DateTime.now().toIso8601String();
+
+      // 2. Save it directly to the Firebase Realtime Database under their UID
+      DatabaseReference userRef = FirebaseDatabase.instance.ref("users/${currentUser.uid}");
+      await userRef.set(finalData);
+
+      debugPrint("=== NEW USER SAVED SUCCESSFULLY WITH ROLE: $cleanRole ===");
+
+      // 3. Emit success so the UI knows to move forward!
+      emit(AuthSuccess(isNewUser: false, role: cleanRole));
+
+    } catch (e) {
+      emit(AuthError("Failed to save user profile: $e"));
+    }
   }
 }
 

@@ -12,12 +12,19 @@ import 'features/auth/bloc/auth_cubit.dart';
 import 'features/dashboard/bloc/dashboard_cubit.dart';
 import 'features/profile/profile_page.dart';
 import 'features/auth/getstarted_page.dart';
+import 'features/auth/login_page.dart';
+import 'features/auth/otp_page.dart';
+import 'features/auth/user_details_page.dart';
 import 'features/dashboard/dash_board.dart';
 import 'features/wallet/wallet_provider.dart';
 import 'core/providers/locale_provider.dart';
 import 'firebase_options.dart';
 
 import 'features/manager/manager_dashboard.dart';
+
+// --- NEW IMPORTS FOR PHASE 5 ---
+import 'features/manager/analytics_page.dart';
+import 'features/manager/models/manager_filter_models.dart';
 
 // --- 1. Top-Level Background Notification Handler ---
 @pragma('vm:entry-point')
@@ -46,9 +53,9 @@ final GoRouter _router = GoRouter(
             }
 
             // 2. Success State (Logged in AND not a new user)
-            // FIXED: Using AuthSuccess instead of AuthAuthenticated
             if (authState is AuthSuccess && !authState.isNewUser) {
-              if (authState.role == 'manager') {
+              final role = authState.role.trim().toLowerCase();
+              if (role == 'manager') {
                 return const ManagerDashboardPage();
               } else {
                 return const DashboardPage();
@@ -64,6 +71,40 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/profile',
       builder: (context, state) => const ProfilePage(),
+    ),
+    GoRoute(
+      path: '/dashboard',
+      builder: (context, state) => const DashboardPage(),
+    ),
+    GoRoute(
+      path: '/login',
+      builder: (context, state) => const login_page(),
+    ),
+    GoRoute(
+      path: '/otp',
+      builder: (context, state) {
+        final verificationId = state.extra as String? ?? '';
+        return otp_page(verificationId: verificationId);
+      },
+    ),
+    GoRoute(
+      path: '/user_details',
+      builder: (context, state) {
+        final existingData = state.extra as Map<String, dynamic>? ?? {};
+        return UserDetailsPage(
+          existingData: existingData,
+          isEditing: false,
+        );
+      },
+    ),
+    // --- PHASE 5 COMPLETE: NEW ROUTE FOR ANALYTICS DASHBOARD ---
+    GoRoute(
+      path: '/analytics',
+      builder: (context, state) {
+        // Securely cast the extra object passed from the dashboard to a GunModel
+        final selectedGun = state.extra as GunModel;
+        return AnalyticsPage(selectedGun: selectedGun);
+      },
     ),
   ],
 );
@@ -123,7 +164,6 @@ Future<void> main() async {
           create: (_) => DashboardCubit(),
         ),
         BlocProvider(
-          // FIXED: Appended ..checkAuthStatus() so it checks the session on startup!
           create: (_) => AuthCubit()..checkAuthStatus(),
         ),
       ],

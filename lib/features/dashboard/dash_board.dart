@@ -88,7 +88,7 @@ class _DashboardViewState extends State<_DashboardView> {
           title: message.notification!.title,         // <-- Added "title:"
           body: message.notification!.body,           // <-- Added "body:"
           notificationDetails: notificationDetails,   // <-- Added "notificationDetails:"
-          payload: deepLinkPath,
+          payload: deepLinkPath ?? '',
         );
       }
     });
