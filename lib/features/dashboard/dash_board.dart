@@ -18,17 +18,11 @@ import 'dart:convert';
 import 'bloc/dashboard_cubit.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+// --- NEW: Import the WalletProvider so the dashboard can read the balance ---
+import '../wallet/wallet_provider.dart';
+
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   return BlocProvider(
-  //     create: (context) => DashboardCubit(),
-  //     // 1. Changed this back to _DashboardView()
-  //     child: const _DashboardView(),
-  //   );
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +33,6 @@ class DashboardPage extends StatelessWidget {
   }
 }
 
-// 2. Added the missing StatefulWidget class
 class _DashboardView extends StatefulWidget {
   const _DashboardView();
 
@@ -58,15 +51,12 @@ class _DashboardViewState extends State<_DashboardView> {
   void _setupForegroundNotifications() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (!mounted) return;
-      // --- NEW: Print the entire message object cleanly ---
       debugPrint("=== FOREGROUND MESSAGE RECEIVED ===");
       debugPrint(const JsonEncoder.withIndent('  ').convert(message.toMap()));
-      // --------------------------------------------------
 
       if (message.notification != null) {
         final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
-        // 1. Define the Android channel (MUST match the high importance channel from main.dart)
         const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
           'high_importance_channel',
           'High Importance Notifications',
@@ -79,22 +69,19 @@ class _DashboardViewState extends State<_DashboardView> {
           android: androidDetails,
         );
 
-        // 2. Grab the deep link defensively (checking for that accidental trailing space!)
         final String? deepLinkPath = message.data['deep_link'] ?? message.data['deep_link '];
 
-        // 3. Show the native system drop-down banner
         flutterLocalNotificationsPlugin.show(
-          id: message.notification.hashCode,          // <-- Added "id:"
-          title: message.notification!.title,         // <-- Added "title:"
-          body: message.notification!.body,           // <-- Added "body:"
-          notificationDetails: notificationDetails,   // <-- Added "notificationDetails:"
+          id: message.notification.hashCode,
+          title: message.notification!.title,
+          body: message.notification!.body,
+          notificationDetails: notificationDetails,
           payload: deepLinkPath ?? '',
         );
       }
     });
   }
 
-  // The Builders array is generated dynamically based on the current state
   List<Widget Function(BuildContext, DashboardState)> _getPageBuilders() => [
     // 0: Home
         (context, state) => _buildHomeView(context, state),
@@ -102,7 +89,7 @@ class _DashboardViewState extends State<_DashboardView> {
     // 1: Map Tab
         (context, state) => const MapPage(),
 
-    // 2: Charge Tab (Handles the charging toggle)
+    // 2: Charge Tab
         (context, state) => state.isCharging
         ? ChargingProgressPage(
       onStopCharging: () {
@@ -110,7 +97,6 @@ class _DashboardViewState extends State<_DashboardView> {
           context,
           MaterialPageRoute(builder: (context) => const ChargingSummaryPage()),
         ).then((_) {
-          // Tell Cubit charging stopped, return to Home tab
           context.read<DashboardCubit>().setChargingStatus(false);
           context.read<DashboardCubit>().changeTab(0);
         });
@@ -139,7 +125,6 @@ class _DashboardViewState extends State<_DashboardView> {
   Widget build(BuildContext context) {
     final translator = Provider.of<DynamicTranslationProvider>(context);
 
-    // BlocBuilder listens to state changes and rebuilds the necessary widgets
     return BlocBuilder<DashboardCubit, DashboardState>(
       builder: (context, state) {
         final builders = _getPageBuilders();
@@ -154,7 +139,6 @@ class _DashboardViewState extends State<_DashboardView> {
             type: BottomNavigationBarType.fixed,
             selectedFontSize: 11,
             unselectedFontSize: 11,
-            // Delegate tab switching to the Cubit
             onTap: (index) => context.read<DashboardCubit>().changeTab(index),
             items: [
               BottomNavigationBarItem(icon: const Icon(Icons.bolt), label: translator.translate("Home")),
@@ -165,8 +149,6 @@ class _DashboardViewState extends State<_DashboardView> {
               BottomNavigationBarItem(icon: const Icon(Icons.person_outline), label: translator.translate("Profile")),
             ],
           ),
-
-          // IndexedStack preserves the state of tabs we have already visited
           body: IndexedStack(
             index: state.selectedNavIndex,
             children: List.generate(builders.length, (index) {
@@ -183,6 +165,9 @@ class _DashboardViewState extends State<_DashboardView> {
 
   Widget _buildHomeView(BuildContext context, DashboardState state) {
     final translator = Provider.of<DynamicTranslationProvider>(context);
+
+    // --- NEW: Get the live balance from the Provider ---
+    final currentBalance = Provider.of<WalletProvider>(context).balance;
 
     return Stack(
       children: [
@@ -212,7 +197,6 @@ class _DashboardViewState extends State<_DashboardView> {
                           style: const TextStyle(color: Colors.white70, fontSize: 14),
                         ),
                         const SizedBox(height: 4),
-                        // Data from Cubit
                         Text(
                           state.vehicleName,
                           style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
@@ -224,7 +208,6 @@ class _DashboardViewState extends State<_DashboardView> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            // Data from Cubit
                             Text(
                                 state.temperature,
                                 style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)
@@ -330,9 +313,11 @@ class _DashboardViewState extends State<_DashboardView> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text("₹ 1,250.00", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                                // --- NEW: Show the dynamic balance ---
+                                Text("₹ ${currentBalance.toStringAsFixed(2)}", style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
                                 OutlinedButton(
-                                  onPressed: () {},
+                                  // --- NEW: Change the tab to Wallet (Index 4) ---
+                                  onPressed: () => context.read<DashboardCubit>().changeTab(4),
                                   style: OutlinedButton.styleFrom(
                                     side: const BorderSide(color: Color(0xFF2563EB)),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -407,7 +392,6 @@ class _DashboardViewState extends State<_DashboardView> {
                             ],
                           ),
                           ElevatedButton(
-                            // Trigger the tab change directly through the Cubit
                             onPressed: () => context.read<DashboardCubit>().changeTab(2),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF2563EB),
@@ -443,7 +427,6 @@ class _DashboardViewState extends State<_DashboardView> {
     );
   }
 
-  // Helper Widget for Session Cards
   Widget _buildSessionCard({
     required String amount, required String energy, required String date,
     required String duration, required Color cardColor, required DynamicTranslationProvider translator,

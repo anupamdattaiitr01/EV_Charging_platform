@@ -13,7 +13,7 @@
     {"label": "Thu", "kw_used": 485.5, "revenue": 8740.0},
     {"label": "Fri", "kw_used": 520.0, "revenue": 9360.0},
     {"label": "Sat", "kw_used": 610.0, "revenue": 10980.0},
-    {"label": "Sun", "kw_used": 580.0, "revenue": 10440.0}
+    {"label": "Sun", "kw_used": 980.0, "revenue": 10440.0}
   ],
   "monthly_trends": [
     {"label": "Jan", "kw_used": 12500.0, "revenue": 225000.0},
