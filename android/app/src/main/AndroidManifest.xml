@@ -12,8 +12,16 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
+    <queries>
+        <package android:name="in.org.npci.upiapp" /> <!-- BHIM -->
+        <package android:name="com.google.android.apps.nbu.paisa.user" /> <!-- Google Pay -->
+        <package android:name="com.phonepe.app" /> <!-- PhonePe -->
+        <package android:name="net.one97.paytm" /> <!-- Paytm -->
+        <!-- Add other test UPI app packages if needed -->
+    </queries>
+
     <application
-        android:label="multi_page_ev_charge"
+        android:label="EV_charging_platform"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 

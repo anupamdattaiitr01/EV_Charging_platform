@@ -2,131 +2,43 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+// Core Imports
+import 'core/di/injection_container.dart' as di;
+import 'core/routing/app_router.dart';
+
+// Feature Imports
 import 'features/auth/bloc/auth_cubit.dart';
-import 'features/dashboard/bloc/dashboard_cubit.dart';
-import 'features/profile/profile_page.dart';
-import 'features/auth/getstarted_page.dart';
-import 'features/auth/login_page.dart';
-import 'features/auth/otp_page.dart';
-import 'features/auth/user_details_page.dart';
-import 'features/dashboard/dash_board.dart';
-import 'features/wallet/wallet_provider.dart';
+import 'features/dashboard/presentation/bloc/dashboard_cubit.dart';
 import 'core/providers/locale_provider.dart';
 import 'firebase_options.dart';
 
-import 'features/manager/manager_dashboard.dart';
+// --- NEW IMPORT: Wallet Cubit (Removed old WalletProvider) ---
+import 'features/wallet/presentation/bloc/wallet_cubit.dart';
 
-// --- NEW IMPORTS FOR PHASE 5 ---
-import 'features/manager/analytics_page.dart';
-import 'features/manager/models/manager_filter_models.dart';
-
-
-// --- 1. Top-Level Background Notification Handler ---
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   debugPrint("Handling a background message: ${message.messageId}");
 }
 
-// --- 2. GoRouter Setup with AuthCubit Guard ---
-final GoRouter _router = GoRouter(
-  initialLocation: '/',
-  routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) {
-        return BlocBuilder<AuthCubit, AuthState>(
-          builder: (context, authState) {
-
-            // 1. Loading State
-            if (authState is AuthLoading) {
-              return const Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(color: Color(0xFF2563EB)),
-                ),
-              );
-            }
-
-            // 2. Success State (Logged in AND not a new user)
-            if (authState is AuthSuccess && !authState.isNewUser) {
-              final role = authState.role.trim().toLowerCase();
-              if (role == 'manager') {
-                return const ManagerDashboardPage();
-              } else {
-                return const DashboardPage();
-              }
-            }
-
-            // 3. Unauthenticated / Initial State
-            return const GetStartedPage();
-          },
-        );
-      },
-    ),
-    GoRoute(
-      path: '/profile',
-      builder: (context, state) => const ProfilePage(),
-    ),
-    GoRoute(
-      path: '/dashboard',
-      builder: (context, state) => const DashboardPage(),
-    ),
-    GoRoute(
-      path: '/login',
-      builder: (context, state) => const login_page(),
-    ),
-    GoRoute(
-      path: '/otp',
-      builder: (context, state) {
-        final verificationId = state.extra as String? ?? '';
-        return otp_page(verificationId: verificationId);
-      },
-    ),
-    GoRoute(
-      path: '/user_details',
-      builder: (context, state) {
-        final existingData = state.extra as Map<String, dynamic>? ?? {};
-        return UserDetailsPage(
-          existingData: existingData,
-          isEditing: false,
-        );
-      },
-    ),
-    // --- PHASE 5 COMPLETE: NEW ROUTE FOR ANALYTICS DASHBOARD ---
-    GoRoute(
-      path: '/analytics',
-      builder: (context, state) {
-        // Securely cast the extra object passed from the dashboard to a GunModel
-        final selectedGun = state.extra as GunModel;
-        return AnalyticsPage(selectedGun: selectedGun);
-      },
-    ),
-  ],
-);
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
+    // 1. Load Environment Variables
     await dotenv.load(fileName: '.env');
 
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+    // 2. Initialize Dependency Injection (GetIt)
+    await di.init();
 
+    // 3. Initialize Firebase & FCM
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-    await FirebaseMessaging.instance.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    await FirebaseMessaging.instance.requestPermission(alert: true, badge: true, sound: true);
 
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
       'high_importance_channel',
@@ -135,45 +47,32 @@ Future<void> main() async {
       importance: Importance.high,
     );
 
-    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
-
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
     await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
 
     final fcmToken = await FirebaseMessaging.instance.getToken();
-    debugPrint("=== MY FCM TOKEN ===");
-    debugPrint(fcmToken);
-    debugPrint("====================");
+    debugPrint("=== FCM TOKEN: $fcmToken ===");
 
   } catch (e) {
-    rethrow;
+    debugPrint("Initialization Error: $e");
   }
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => WalletProvider(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => DynamicTranslationProvider(),
-        ),
-        BlocProvider(
-          create: (_) => DashboardCubit(),
-        ),
-        BlocProvider(
-          create: (_) => AuthCubit()..checkAuthStatus(),
-        ),
+        ChangeNotifierProvider(create: (_) => DynamicTranslationProvider()),
+        BlocProvider(create: (_) => di.sl<DashboardCubit>()),
+        BlocProvider(create: (_) => di.sl<AuthCubit>()..checkAuthStatus()),
+        // --- NEW BLOC PROVIDER: Wallet Cubit ---
+        BlocProvider(create: (_) => di.sl<WalletCubit>()),
       ],
       child: const MyApp(),
     ),
   );
 }
 
-// --- 3. Stateful MyApp for Notification Listeners ---
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -189,95 +88,60 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _setupNotificationRouting() async {
-    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
-
-    const AndroidInitializationSettings androidInit =
-    AndroidInitializationSettings('@mipmap/ic_launcher');
-
-    const InitializationSettings initSettings = InitializationSettings(
-      android: androidInit,
-    );
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    const AndroidInitializationSettings androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const InitializationSettings initSettings = InitializationSettings(android: androidInit);
 
     await flutterLocalNotificationsPlugin.initialize(
       settings: initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         final String? payloadPath = response.payload;
         if (payloadPath != null && payloadPath.trim().isNotEmpty) {
-          final cleanPath = payloadPath.trim();
-          final dashboardCubit = context.read<DashboardCubit>();
-
-          if (cleanPath == '/profile') {
-            _router.go('/');
-            dashboardCubit.changeTab(5);
-          } else if (cleanPath == '/wallet') {
-            _router.go('/');
-            dashboardCubit.changeTab(4);
-          } else if (cleanPath == '/map') {
-            _router.go('/');
-            dashboardCubit.changeTab(1);
-          } else if (cleanPath == '/history') {
-            _router.go('/');
-            dashboardCubit.changeTab(3);
-          } else {
-            _router.push(cleanPath);
-          }
+          _handleDeepLink(payloadPath.trim());
         }
       },
     );
 
-    RemoteMessage? initialMessage =
-    await FirebaseMessaging.instance.getInitialMessage();
-
-    if (initialMessage != null) {
-      Future.delayed(const Duration(milliseconds: 800), () {
-        if (mounted) {
-          _routeFromMessage(initialMessage);
-        }
-      });
+    RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null && mounted) {
+      Future.delayed(const Duration(milliseconds: 800), () => _routeFromMessage(initialMessage));
     }
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      if (mounted) {
-        _routeFromMessage(message);
-      }
+      if (mounted) _routeFromMessage(message);
     });
   }
 
   void _routeFromMessage(RemoteMessage message) {
     final String? deepLinkPath = message.data['deep_link'] ?? message.data['deep_link '];
-    debugPrint("=== BACKGROUND/TERMINATED ROUTING TAPPED: $deepLinkPath ===");
-
     if (deepLinkPath != null && deepLinkPath.trim().isNotEmpty) {
-      final cleanPath = deepLinkPath.trim();
-      final dashboardCubit = context.read<DashboardCubit>();
+      _handleDeepLink(deepLinkPath.trim());
+    }
+  }
 
-      if (cleanPath == '/profile') {
-        _router.go('/');
-        dashboardCubit.changeTab(5);
-      }
-      else if (cleanPath == '/wallet') {
-        _router.go('/');
-        dashboardCubit.changeTab(4);
-      }
-      else if (cleanPath == '/map') {
-        _router.go('/');
-        dashboardCubit.changeTab(1);
-      }
-      else if (cleanPath == '/history') {
-        _router.go('/');
-        dashboardCubit.changeTab(3);
-      }
-      else {
-        _router.push(cleanPath);
-      }
+  void _handleDeepLink(String path) {
+    final dashboardCubit = context.read<DashboardCubit>();
+    if (path == '/profile') {
+      AppRouter.router.go('/');
+      dashboardCubit.changeTab(5);
+    } else if (path == '/wallet') {
+      AppRouter.router.go('/');
+      dashboardCubit.changeTab(4);
+    } else if (path == '/map') {
+      AppRouter.router.go('/');
+      dashboardCubit.changeTab(1);
+    } else if (path == '/history') {
+      AppRouter.router.go('/');
+      dashboardCubit.changeTab(3);
+    } else {
+      AppRouter.router.push(path);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      routerConfig: _router,
+      routerConfig: AppRouter.router, // Connected to the new AppRouter
       debugShowCheckedModeBanner: false,
       title: 'EV Charging Platform',
       theme: ThemeData(
@@ -293,6 +157,8 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
+
+
 
 // // =====================================================================
 // // MANAGER DASHBOARD PAGE (Cascading Dropdowns)

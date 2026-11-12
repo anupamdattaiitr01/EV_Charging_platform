@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart'; // NEW: Imported GoRouter
 
-import '../dashboard/home_page.dart';
+import '../dashboard/presentation/pages/dash_board.dart';
 import '../../core/providers/locale_provider.dart';
 import 'user_details_page.dart';
 import 'bloc/auth_cubit.dart';
@@ -38,11 +38,12 @@ class _OtpViewState extends State<_OtpView> {
   String enteredOtp = "";
 
   @override
+  @override
   Widget build(BuildContext context) {
     final translator = Provider.of<DynamicTranslationProvider>(context);
 
     final defaultPinTheme = PinTheme(
-      width: 48,
+      width: 44,
       height: 60,
       textStyle: const TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.w600),
       decoration: BoxDecoration(
@@ -56,7 +57,6 @@ class _OtpViewState extends State<_OtpView> {
     );
 
     return BlocConsumer<AuthCubit, AuthState>(
-      // --- THE LISTENER: Handles Navigation and Errors ---
         listener: (context, state) {
           if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -67,28 +67,21 @@ class _OtpViewState extends State<_OtpView> {
               ),
             );
           } else if (state is AuthSuccess) {
-
-            // 1. If it's a brand new user, let them complete onboarding
             if (state.isNewUser) {
-              // --- PHASE 4 FIX: Use GoRouter to navigate to User Details ---
-              // Pass the data securely via extra to bypass the rogue stack trap!
               context.go('/user_details', extra: state.newUserData ?? {});
-            }
-            // 2. FIXED: If existing user, route to '/' so main.dart checks the role!
-            else {
-              // Now that GoRouter owns the route, we just tell it to go to root.
+            } else {
               context.go('/');
             }
           }
         },
-
-        // --- THE BUILDER: Handles UI Painting ---
         builder: (context, state) {
           final bool isLoading = state is AuthLoading;
 
           return Scaffold(
               backgroundColor: const Color(0xFF0A0A0A),
               extendBodyBehindAppBar: true,
+              // --- FIX 1: Prevent the keyboard from squishing the layout ---
+              resizeToAvoidBottomInset: false,
               appBar: AppBar(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
@@ -111,120 +104,122 @@ class _OtpViewState extends State<_OtpView> {
                         ),
                       ),
                     ),
-
                     SafeArea(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
-                          child: Form(
-                            key: _formKey,
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SizedBox(height: 100),
-                                  Text(
-                                    translator.translate("Verify Your Number"),
-                                    style: const TextStyle(
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    translator.translate("Enter The 6-Digit OTP code"),
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 40),
-
-                                  Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        Pinput(
-                                          length: 6,
-                                          defaultPinTheme: defaultPinTheme,
-                                          errorPinTheme: errorPinTheme,
-                                          validator: (pin) {
-                                            if (pin == null || !RegExp(r'^\d{6}$').hasMatch(pin)) {
-                                              return translator.translate('Please enter all 6 digits');
-                                            }
-                                            return null;
-                                          },
-                                          focusedPinTheme: defaultPinTheme.copyDecorationWith(
-                                            border: Border.all(color: const Color(0xFF2563EB), width: 2),
-                                          ),
-                                          autofocus: true,
-                                          keyboardType: TextInputType.number,
-                                          inputFormatters: [
-                                            FilteringTextInputFormatter.digitsOnly,
-                                          ],
-                                          onChanged: (pin) {
-                                            enteredOtp = pin;
-                                          },
-                                        ),
-                                      ]
-                                  ),
-
-                                  const SizedBox(height: 40),
-
-                                  SizedBox(
-                                    width: double.infinity,
-                                    height: 55,
-                                    child: ElevatedButton(
-                                      onPressed: isLoading ? null : () {
-                                        if (_formKey.currentState!.validate()) {
-                                          context.read<AuthCubit>().verifyOTP(widget.verificationId, enteredOtp);
-                                        }
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFF2563EB),
-                                        disabledBackgroundColor: const Color(0xFF2563EB).withValues(alpha: 0.5),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                      ),
-                                      child: isLoading
-                                          ? const SizedBox(
-                                          height: 24,
-                                          width: 24,
-                                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)
-                                      )
-                                          : Text(
-                                        translator.translate("Verify & Continue"),
-                                        style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white
-                                        ),
+                      // --- FIX 2: Allow scrolling when keyboard covers the screen ---
+                        child: SingleChildScrollView(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
+                            child: Form(
+                              key: _formKey,
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const SizedBox(height: 100),
+                                    Text(
+                                      translator.translate("Verify Your Number"),
+                                      style: const TextStyle(
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
                                       ),
                                     ),
-                                  ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      translator.translate("Enter The 6-Digit OTP code"),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 40),
 
-                                  const SizedBox(height: 24),
-
-                                  Center(
-                                    child: RichText(
-                                      text: TextSpan(
-                                        text: translator.translate("Didn't receive the code? "),
-                                        style: const TextStyle(color: Colors.white54, fontSize: 14),
+                                    Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                         children: [
-                                          TextSpan(
-                                            text: translator.translate("Resend OTP (30s)"),
-                                            style: const TextStyle(
-                                              color: Color(0xFF2563EB),
-                                              fontWeight: FontWeight.bold,
+                                          Pinput(
+                                            length: 6,
+                                            defaultPinTheme: defaultPinTheme,
+                                            errorPinTheme: errorPinTheme,
+                                            validator: (pin) {
+                                              if (pin == null || !RegExp(r'^\d{6}$').hasMatch(pin)) {
+                                                return translator.translate('Please enter all 6 digits');
+                                              }
+                                              return null;
+                                            },
+                                            focusedPinTheme: defaultPinTheme.copyDecorationWith(
+                                              border: Border.all(color: const Color(0xFF2563EB), width: 2),
                                             ),
+                                            autofocus: true,
+                                            keyboardType: TextInputType.number,
+                                            inputFormatters: [
+                                              FilteringTextInputFormatter.digitsOnly,
+                                            ],
+                                            onChanged: (pin) {
+                                              enteredOtp = pin;
+                                            },
                                           ),
-                                        ],
+                                        ]
+                                    ),
+
+                                    const SizedBox(height: 40),
+
+                                    SizedBox(
+                                      width: double.infinity,
+                                      height: 55,
+                                      child: ElevatedButton(
+                                        onPressed: isLoading ? null : () {
+                                          if (_formKey.currentState!.validate()) {
+                                            context.read<AuthCubit>().verifyOTP(widget.verificationId, enteredOtp);
+                                          }
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color(0xFF2563EB),
+                                          disabledBackgroundColor: const Color(0xFF2563EB).withValues(alpha: 0.5),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                        ),
+                                        child: isLoading
+                                            ? const SizedBox(
+                                            height: 24,
+                                            width: 24,
+                                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)
+                                        )
+                                            : Text(
+                                          translator.translate("Verify & Continue"),
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
 
-                                  const Spacer(),
-                                ]
+                                    const SizedBox(height: 24),
+
+                                    Center(
+                                      child: RichText(
+                                        text: TextSpan(
+                                          text: translator.translate("Didn't receive the code? "),
+                                          style: const TextStyle(color: Colors.white54, fontSize: 14),
+                                          children: [
+                                            TextSpan(
+                                              text: translator.translate("Resend OTP (30s)"),
+                                              style: const TextStyle(
+                                                color: Color(0xFF2563EB),
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    // --- FIX 3: Replaced the Spacer() widget which crashes in SingleChildScrollView ---
+                                    SizedBox(height: MediaQuery.of(context).viewInsets.bottom > 0 ? MediaQuery.of(context).viewInsets.bottom + 20 : 100),
+                                  ]
+                              ),
                             ),
                           ),
                         )

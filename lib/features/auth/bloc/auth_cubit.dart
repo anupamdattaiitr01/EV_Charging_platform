@@ -1,258 +1,96 @@
-import 'package:flutter/foundation.dart'; // Required for debugPrint
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../domain/entities/auth_user.dart';
+import '../domain/repositories/i_auth_repository.dart';
 
 abstract class AuthState {}
-
 class AuthInitial extends AuthState {}
-
 class AuthLoading extends AuthState {}
-
 class AuthCodeSent extends AuthState {
   final String verificationId;
   AuthCodeSent(this.verificationId);
 }
-
 class AuthSuccess extends AuthState {
   final bool isNewUser;
   final Map<String, dynamic>? newUserData;
   final String role;
 
-  AuthSuccess({
-    required this.isNewUser,
-    this.newUserData,
-    this.role = 'driver',
-  });
+  AuthSuccess({required this.isNewUser, this.newUserData, this.role = 'driver'});
 }
-
 class AuthError extends AuthState {
   final String message;
   AuthError(this.message);
 }
 
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit() : super(AuthInitial());
+  final IAuthRepository _authRepository;
 
-  // ------------------------------------------------------------------------
-  // 1. STARTUP CHECK
-  // ------------------------------------------------------------------------
+  // Constructor Injection
+  AuthCubit(this._authRepository) : super(AuthInitial());
+
   Future<void> checkAuthStatus() async {
     emit(AuthLoading());
-
     try {
-      final User? currentUser = FirebaseAuth.instance.currentUser;
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final String? loginTimeString = prefs.getString('login_timestamp');
-
-      if (currentUser != null && loginTimeString != null) {
-        final DateTime loginTime = DateTime.parse(loginTimeString);
-        final DateTime now = DateTime.now();
-        final Duration difference = now.difference(loginTime);
-
-        if (difference.inDays < 3) {
-          DatabaseReference userRef = FirebaseDatabase.instance.ref("users/${currentUser.uid}");
-          DataSnapshot snapshot = await userRef.get();
-
-          if (snapshot.exists) {
-            final data = snapshot.value as Map<dynamic, dynamic>?;
-            final String rawRole = data?['role']?.toString() ?? 'driver';
-
-            // CLEAN THE STRING
-            final String cleanRole = rawRole.replaceAll('"', '').replaceAll("'", '').trim();
-            debugPrint("=== STARTUP ROLE FETCHED: $cleanRole ===");
-
-            emit(AuthSuccess(isNewUser: false, role: cleanRole));
-            return;
-          }
-        } else {
-          await FirebaseAuth.instance.signOut();
-          await prefs.remove('login_timestamp');
-        }
+      final user = await _authRepository.checkAuthStatus();
+      if (user != null) {
+        emit(AuthSuccess(isNewUser: user.isNewUser, newUserData: user.newUserData, role: user.role));
+      } else {
+        emit(AuthInitial());
       }
-      emit(AuthInitial());
     } catch (e) {
       emit(AuthInitial());
     }
   }
 
-  // ------------------------------------------------------------------------
-  // 2. SEND OTP
-  // ------------------------------------------------------------------------
   Future<void> sendOTP(String phoneNumber) async {
     emit(AuthLoading());
-
     try {
-      await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: phoneNumber,
-        verificationCompleted: (PhoneAuthCredential credential) {},
-        verificationFailed: (FirebaseAuthException e) {
-          emit(AuthError("Verification Failed: ${e.message}"));
-        },
-        codeSent: (String verificationId, int? resendToken) {
-          emit(AuthCodeSent(verificationId));
-        },
-        codeAutoRetrievalTimeout: (String verificationId) {},
+      await _authRepository.sendOTP(
+        phoneNumber,
+            (verificationId) => emit(AuthCodeSent(verificationId)),
+            (errorMsg) => emit(AuthError("Verification Failed: $errorMsg")),
       );
     } catch (e) {
       emit(AuthError(e.toString()));
     }
   }
 
-  // ------------------------------------------------------------------------
-  // 3. GOOGLE SIGN IN
-  // ------------------------------------------------------------------------
-  Future<void> signInWithGoogle() async {
-    emit(AuthLoading());
-
-    try {
-      final GoogleSignIn googleSignIn = GoogleSignIn(
-        scopes: ['email', 'profile'],
-      );
-
-      await googleSignIn.signOut();
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-
-      if (googleUser == null) {
-        emit(AuthInitial());
-        return;
-      }
-
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final OAuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
-      String? uid = userCredential.user?.uid;
-
-      if (uid == null) {
-        emit(AuthError("Failed to retrieve user ID from Firebase."));
-        return;
-      }
-
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('login_timestamp', DateTime.now().toIso8601String());
-
-      DatabaseReference userRef = FirebaseDatabase.instance.ref("users/$uid");
-      DataSnapshot snapshot = await userRef.get();
-
-      if (!snapshot.exists) {
-        emit(AuthSuccess(
-            isNewUser: true,
-            newUserData: {
-              'name': googleUser.displayName ?? '',
-              'email': googleUser.email,
-              'profile_image_url': googleUser.photoUrl ?? '',
-            }
-        ));
-      } else {
-        final data = snapshot.value as Map<dynamic, dynamic>?;
-        final String rawRole = data?['role']?.toString() ?? 'driver';
-
-        // CLEAN THE STRING
-        final String cleanRole = rawRole.replaceAll('"', '').replaceAll("'", '').trim();
-        debugPrint("=== GOOGLE LOGIN ROLE FETCHED: $cleanRole ===");
-
-        emit(AuthSuccess(isNewUser: false, role: cleanRole));
-      }
-    } catch (e) {
-      emit(AuthError(e.toString()));
-    }
-  }
-
-  // ------------------------------------------------------------------------
-  // 4. VERIFY OTP
-  // ------------------------------------------------------------------------
   Future<void> verifyOTP(String verificationId, String smsCode) async {
     emit(AuthLoading());
-
     try {
-      PhoneAuthCredential credential = PhoneAuthProvider.credential(
-        verificationId: verificationId,
-        smsCode: smsCode,
-      );
-
-      UserCredential userCred = await FirebaseAuth.instance.signInWithCredential(credential);
-      String? uid = userCred.user?.uid;
-
-      if (uid == null) {
-        emit(AuthError("Failed to retrieve user ID from Firebase."));
-        return;
-      }
-
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('login_timestamp', DateTime.now().toIso8601String());
-
-      DatabaseEvent event = await FirebaseDatabase.instance.ref("users/$uid").once();
-
-      if (event.snapshot.exists) {
-        final data = event.snapshot.value as Map<dynamic, dynamic>?;
-        final String rawRole = data?['role']?.toString() ?? 'driver';
-
-        // CLEAN THE STRING
-        final String cleanRole = rawRole.replaceAll('"', '').replaceAll("'", '').trim();
-        debugPrint("=== OTP LOGIN ROLE FETCHED: $cleanRole ===");
-
-        emit(AuthSuccess(isNewUser: false, role: cleanRole));
-      } else {
-        emit(AuthSuccess(
-            isNewUser: true,
-            newUserData: {
-              'phone': userCred.user?.phoneNumber ?? '',
-            }
-        ));
-      }
+      final user = await _authRepository.verifyOTP(verificationId, smsCode);
+      emit(AuthSuccess(isNewUser: user.isNewUser, newUserData: user.newUserData, role: user.role));
     } catch (e) {
       emit(AuthError("Invalid OTP or Verification Failed."));
     }
   }
 
-  // ------------------------------------------------------------------------
-  // 5. SIGN OUT
-  // ------------------------------------------------------------------------
-  Future<void> signOut() async {
-    await FirebaseAuth.instance.signOut();
-    await GoogleSignIn().signOut(); // <-- ADD THIS LINE to clear the Google session cache
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('login_timestamp');
-    emit(AuthInitial());
+  Future<void> signInWithGoogle() async {
+    emit(AuthLoading());
+    try {
+      final user = await _authRepository.signInWithGoogle();
+      if (user != null) {
+        emit(AuthSuccess(isNewUser: user.isNewUser, newUserData: user.newUserData, role: user.role));
+      } else {
+        emit(AuthInitial());
+      }
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
   }
 
-  // ------------------------------------------------------------------------
-  // 6. SAVE NEW USER PROFILE
-  // ------------------------------------------------------------------------
   Future<void> saveUserProfile(Map<String, dynamic> userData, String selectedRole) async {
     emit(AuthLoading());
-
     try {
-      final User? currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null) {
-        emit(AuthError("No authenticated user found."));
-        return;
-      }
-
-      // 1. Prepare the data payload, forcing the role into the map
-      final Map<String, dynamic> finalData = Map<String, dynamic>.from(userData);
-      final String cleanRole = selectedRole.toLowerCase().trim();
-      finalData['role'] = cleanRole;
-      finalData['created_at'] = DateTime.now().toIso8601String();
-
-      // 2. Save it directly to the Firebase Realtime Database under their UID
-      DatabaseReference userRef = FirebaseDatabase.instance.ref("users/${currentUser.uid}");
-      await userRef.set(finalData);
-
-      debugPrint("=== NEW USER SAVED SUCCESSFULLY WITH ROLE: $cleanRole ===");
-
-      // 3. Emit success so the UI knows to move forward!
-      emit(AuthSuccess(isNewUser: false, role: cleanRole));
-
+      final user = await _authRepository.saveUserProfile(userData, selectedRole);
+      emit(AuthSuccess(isNewUser: false, role: user.role));
     } catch (e) {
       emit(AuthError("Failed to save user profile: $e"));
     }
+  }
+
+  Future<void> signOut() async {
+    await _authRepository.signOut();
+    emit(AuthInitial());
   }
 }
 

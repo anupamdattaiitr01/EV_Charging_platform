@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../dashboard/dash_board.dart';
+import '../dashboard/presentation/pages/dash_board.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/locale_provider.dart';
 
