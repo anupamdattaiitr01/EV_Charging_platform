@@ -4,12 +4,12 @@ import 'package:provider/provider.dart';
 
 // --- FIXED IMPORT PATHS ---
 // We go up three levels to reach 'features/', then down into the specific feature folders
-import '../../../map/map_page.dart';
-import '../../../charging/select_gun_page.dart';
-import '../../../charging/charging_progress_page.dart';
-import '../../../charging/charging_summary_page.dart';
-import '../../../charging/charging_history_page.dart';
-import '../../../profile/profile_page.dart';
+import '../../../map/presentation/pages/map_page.dart';
+import '../../../charging/presentation/pages/select_gun_page.dart';
+import '../../../charging/presentation/pages/charging_progress_page.dart';
+import '../../../charging/presentation/pages/charging_summary_page.dart';
+import '../../../charging/presentation/pages/charging_history_page.dart';
+import '../../../profile/presentation/pages/profile_page.dart';
 
 // We go up four levels to reach 'lib/', then down into 'core/'
 import '../../../../core/providers/locale_provider.dart';

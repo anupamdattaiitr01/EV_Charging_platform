@@ -1,28 +1,29 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+import '../../../../core/di/injection_container.dart' as di;
 import '../bloc/analytics_cubit.dart';
-import '../../data/models/analytics_model.dart';
-import '../../data/models/manager_filter_models.dart';
+import '../../domain/entities/analytics_entity.dart';
+import '../../domain/entities/filter_entity.dart';
 
 class AnalyticsPage extends StatelessWidget {
-  final GunModel selectedGun;
+  final GunEntity selectedGun;
 
   const AnalyticsPage({super.key, required this.selectedGun});
 
   @override
   Widget build(BuildContext context) {
-    // Provide the cubit to this specific page and instantly load the data
     return BlocProvider(
-      create: (context) => AnalyticsCubit()..loadAnalytics(selectedGun.id),
+      create: (context) => di.sl<AnalyticsCubit>()..loadAnalytics(selectedGun.id),
       child: _AnalyticsView(selectedGun: selectedGun),
     );
   }
 }
 
 class _AnalyticsView extends StatefulWidget {
-  final GunModel selectedGun;
+  final GunEntity selectedGun;
 
   const _AnalyticsView({required this.selectedGun});
 
@@ -31,7 +32,6 @@ class _AnalyticsView extends StatefulWidget {
 }
 
 class _AnalyticsViewState extends State<_AnalyticsView> {
-  // Toggle state: 0 for Daily, 1 for Monthly
   int _selectedTabIndex = 0;
 
   @override
@@ -40,27 +40,24 @@ class _AnalyticsViewState extends State<_AnalyticsView> {
       backgroundColor: const Color(0xFF0A0A0A),
       appBar: AppBar(
         title: Text(
-          '${widget.selectedGun.title} Analytics',
+          '${widget.selectedGun.type} Analytics',
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
         ),
-        backgroundColor: Colors.transparent, // Match main app theme
+        backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: Stack(
         children: [
-          // --- 1. App Background Theme Glow Overlay (FULL SCREEN STRETCH) ---
-          Positioned.fill( // Changed from Positioned(top: -120...) to Positioned.fill
+          Positioned.fill(
             child: Opacity(
               opacity: 0.5,
               child: Image.asset(
                 'assets/images/Ellipse1.png',
-                fit: BoxFit.cover, // Ensures it stretches to cover the whole background
+                fit: BoxFit.cover,
               ),
             ),
           ),
-
-          // --- 2. Scrollable Content ---
           SafeArea(
             child: BlocBuilder<AnalyticsCubit, AnalyticsState>(
               builder: (context, state) {
@@ -78,9 +75,10 @@ class _AnalyticsViewState extends State<_AnalyticsView> {
                 }
 
                 if (state is AnalyticsLoaded) {
-                  final data = state.data;
-                  final isDaily = _selectedTabIndex == 0;
-                  final activeTrends = isDaily ? data.dailyTrends : data.monthlyTrends;
+                  final AnalyticsEntity data = state.data;
+                  final bool isDaily = _selectedTabIndex == 0;
+                  final List<TrendPointEntity> activeTrends =
+                  isDaily ? data.dailyTrends : data.monthlyTrends;
 
                   return SingleChildScrollView(
                     padding: const EdgeInsets.all(20.0),
@@ -88,19 +86,19 @@ class _AnalyticsViewState extends State<_AnalyticsView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // --- 1. THE DAILY/MONTHLY TOGGLE ---
                         _buildToggleSwitch(),
                         const SizedBox(height: 24),
-
-                        // --- 2. SUMMARY CARDS ---
-                        const Text("Performance Summary", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                        const Text(
+                          "Today's Performance Summary",
+                          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
                         const SizedBox(height: 16),
                         Row(
                           children: [
                             Expanded(
                               child: _buildSummaryCard(
-                                title: "Cars Charged",
-                                value: "${data.summary.totalCarsToday}",
+                                title: "Sessions",
+                                value: "${data.totalSessions}",
                                 icon: Icons.electric_car,
                                 iconColor: const Color(0xFF00E676),
                               ),
@@ -108,8 +106,8 @@ class _AnalyticsViewState extends State<_AnalyticsView> {
                             const SizedBox(width: 16),
                             Expanded(
                               child: _buildSummaryCard(
-                                title: "Energy Used",
-                                value: "${data.summary.totalKwToday} kW",
+                                title: "Uptime",
+                                value: "${data.uptimePercentage.toStringAsFixed(1)}%",
                                 icon: Icons.bolt,
                                 iconColor: const Color(0xFFFFB300),
                               ),
@@ -121,48 +119,38 @@ class _AnalyticsViewState extends State<_AnalyticsView> {
                           children: [
                             Expanded(
                               child: _buildSummaryCard(
-                                title: "Revenue",
-                                value: "₹${data.summary.revenueToday}",
-                                icon: Icons.currency_rupee,
-                                iconColor: const Color(0xFF2563EB),
+                                title: "Energy Delivered",
+                                value: "${data.totalKwToday.toStringAsFixed(1)} kWh",
+                                icon: Icons.battery_charging_full,
+                                iconColor: const Color(0xFF00E5FF),
                               ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
                               child: _buildSummaryCard(
-                                title: "Active Hours",
-                                value: "${data.summary.hoursActiveToday}h",
-                                icon: Icons.schedule,
-                                iconColor: const Color(0xFF9C27B0),
+                                title: "Total Revenue",
+                                value: "₹${data.totalRevenue.toStringAsFixed(0)}",
+                                icon: Icons.currency_rupee,
+                                iconColor: const Color(0xFF2563EB),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 32),
-
-                        // --- 3. BAR CHART (ENERGY USAGE) ---
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text("Energy Consumption (kW)", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                            const Icon(Icons.bar_chart, color: Colors.white54, size: 24),
-                          ],
+                        const SizedBox(height: 28),
+                        Text(
+                          isDaily ? "Daily Energy Usage (kWh)" : "Monthly Energy Usage (kWh)",
+                          style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: 16),
-                        _buildBarChart(activeTrends),
-                        const SizedBox(height: 32),
-
-                        // --- 4. PIE CHART (REVENUE DISTRIBUTION) ---
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text("Revenue Generation", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                            const Icon(Icons.pie_chart_outline, color: Colors.white54, size: 24),
-                          ],
+                        const SizedBox(height: 12),
+                        _buildEnergyBarChart(activeTrends),
+                        const SizedBox(height: 28),
+                        Text(
+                          isDaily ? "Daily Revenue Trend (₹)" : "Monthly Revenue Trend (₹)",
+                          style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: 16),
-                        _buildPieChart(activeTrends),
-                        const SizedBox(height: 40),
+                        const SizedBox(height: 12),
+                        _buildRevenueLineChart(activeTrends),
+                        const SizedBox(height: 24),
                       ],
                     ),
                   );
@@ -177,9 +165,175 @@ class _AnalyticsViewState extends State<_AnalyticsView> {
     );
   }
 
-  // =======================================================================
-  // UI WIDGET BUILDERS
-  // =======================================================================
+  Widget _buildEnergyBarChart(List<TrendPointEntity> trends) {
+    if (trends.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final maxKw = trends.map((e) => e.kwUsed).reduce(math.max);
+    final maxY = maxKw > 0 ? maxKw * 1.25 : 100.0;
+
+    return Container(
+      height: 220,
+      padding: const EdgeInsets.fromLTRB(12, 20, 16, 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF161B22),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: BarChart(
+        BarChartData(
+          maxY: maxY,
+          barTouchData: BarTouchData(enabled: true),
+          gridData: FlGridData(
+            show: true,
+            drawVerticalLine: false,
+            getDrawingHorizontalLine: (_) => const FlLine(color: Colors.white10, strokeWidth: 1),
+          ),
+          borderData: FlBorderData(show: false),
+          titlesData: FlTitlesData(
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 44,
+                getTitlesWidget: (value, meta) {
+                  if (value == 0) return const SizedBox.shrink();
+                  return Text(
+                    _formatCompactNumber(value),
+                    style: const TextStyle(color: Colors.white38, fontSize: 10),
+                  );
+                },
+              ),
+            ),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  final index = value.toInt();
+                  if (index < 0 || index >= trends.length) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(
+                      trends[index].label,
+                      style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w500),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          barGroups: List.generate(trends.length, (index) {
+            return BarChartGroupData(
+              x: index,
+              barRods: [
+                BarChartRodData(
+                  toY: trends[index].kwUsed,
+                  width: 16,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF00E676), Color(0xFF2563EB)],
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                  ),
+                ),
+              ],
+            );
+          }),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRevenueLineChart(List<TrendPointEntity> trends) {
+    if (trends.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final maxRev = trends.map((e) => e.revenue).reduce(math.max);
+    final maxY = maxRev > 0 ? maxRev * 1.25 : 1000.0;
+
+    return Container(
+      height: 220,
+      padding: const EdgeInsets.fromLTRB(12, 20, 16, 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF161B22),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: LineChart(
+        LineChartData(
+          minY: 0,
+          maxY: maxY,
+          lineTouchData: const LineTouchData(enabled: true),
+          gridData: FlGridData(
+            show: true,
+            drawVerticalLine: false,
+            getDrawingHorizontalLine: (_) => const FlLine(color: Colors.white10, strokeWidth: 1),
+          ),
+          borderData: FlBorderData(show: false),
+          titlesData: FlTitlesData(
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 48,
+                getTitlesWidget: (value, meta) {
+                  if (value == 0) return const SizedBox.shrink();
+                  return Text(
+                    '₹${_formatCompactNumber(value)}',
+                    style: const TextStyle(color: Colors.white38, fontSize: 10),
+                  );
+                },
+              ),
+            ),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                interval: 1,
+                getTitlesWidget: (value, meta) {
+                  final index = value.toInt();
+                  if (index < 0 || index >= trends.length) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(
+                      trends[index].label,
+                      style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w500),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          lineBarsData: [
+            LineChartBarData(
+              spots: List.generate(
+                trends.length,
+                    (index) => FlSpot(index.toDouble(), trends[index].revenue),
+              ),
+              isCurved: true,
+              color: const Color(0xFF00E5FF),
+              barWidth: 3,
+              dotData: const FlDotData(show: true),
+              belowBarData: BarAreaData(
+                show: true,
+                color: const Color(0xFF00E5FF).withValues(alpha: 0.14),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatCompactNumber(double value) {
+    if (value >= 1000) {
+      return '${(value / 1000).toStringAsFixed(0)}k';
+    }
+    return value.toStringAsFixed(0);
+  }
 
   Widget _buildToggleSwitch() {
     return Container(
@@ -200,7 +354,13 @@ class _AnalyticsViewState extends State<_AnalyticsView> {
                   borderRadius: BorderRadius.circular(11),
                 ),
                 alignment: Alignment.center,
-                child: Text("Daily Trends", style: TextStyle(color: _selectedTabIndex == 0 ? Colors.white : Colors.white54, fontWeight: FontWeight.bold)),
+                child: Text(
+                  "Daily Trends",
+                  style: TextStyle(
+                    color: _selectedTabIndex == 0 ? Colors.white : Colors.white54,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ),
@@ -214,7 +374,13 @@ class _AnalyticsViewState extends State<_AnalyticsView> {
                   borderRadius: BorderRadius.circular(11),
                 ),
                 alignment: Alignment.center,
-                child: Text("Monthly Trends", style: TextStyle(color: _selectedTabIndex == 1 ? Colors.white : Colors.white54, fontWeight: FontWeight.bold)),
+                child: Text(
+                  "Monthly Trends",
+                  style: TextStyle(
+                    color: _selectedTabIndex == 1 ? Colors.white : Colors.white54,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ),
@@ -223,7 +389,12 @@ class _AnalyticsViewState extends State<_AnalyticsView> {
     );
   }
 
-  Widget _buildSummaryCard({required String title, required String value, required IconData icon, required Color iconColor}) {
+  Widget _buildSummaryCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color iconColor,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -243,161 +414,6 @@ class _AnalyticsViewState extends State<_AnalyticsView> {
           Text(value, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
           Text(title, style: const TextStyle(color: Colors.white54, fontSize: 12)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBarChart(List<TrendData> trends) {
-    if (trends.isEmpty) return const SizedBox();
-
-    // Find the max value to scale the graph dynamically
-    double maxY = trends.map((e) => e.kwUsed).reduce((a, b) => a > b ? a : b);
-
-    return Container(
-      height: 250,
-      padding: const EdgeInsets.only(top: 24, right: 16, left: 0, bottom: 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF161B22),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: BarChart(
-        BarChartData(
-          alignment: BarChartAlignment.spaceAround,
-          maxY: maxY * 1.2, // Add 20% headroom above highest bar
-          barTouchData: BarTouchData(
-            touchTooltipData: BarTouchTooltipData(
-              getTooltipColor: (group) => Colors.blueGrey,
-              getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                return BarTooltipItem(
-                  "${rod.toY.round()} kW",
-                  const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                );
-              },
-            ),
-          ),
-          titlesData: FlTitlesData(
-            show: true,
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (double value, TitleMeta meta) {
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(trends[value.toInt()].label, style: const TextStyle(color: Colors.white54, fontSize: 11)),
-                  );
-                },
-                reservedSize: 28,
-              ),
-            ),
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 40,
-                getTitlesWidget: (value, meta) {
-                  if (value == 0) return const SizedBox.shrink();
-                  return Text(
-                    value.toInt().toString(),
-                    style: const TextStyle(color: Colors.white38, fontSize: 10),
-                    textAlign: TextAlign.left,
-                  );
-                },
-              ),
-            ),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          ),
-          borderData: FlBorderData(show: false),
-          gridData: FlGridData(
-            show: true,
-            drawVerticalLine: false,
-            horizontalInterval: maxY / 4,
-            getDrawingHorizontalLine: (value) => FlLine(color: Colors.white10, strokeWidth: 1),
-          ),
-          barGroups: trends.asMap().entries.map((entry) {
-            return BarChartGroupData(
-              x: entry.key,
-              barRods: [
-                BarChartRodData(
-                  toY: entry.value.kwUsed,
-                  color: const Color(0xFFFFB300),
-                  width: 14,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-                ),
-              ],
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPieChart(List<TrendData> trends) {
-    if (trends.isEmpty) return const SizedBox();
-
-    // Use predefined colors for the pie slices
-    final List<Color> sliceColors = [
-      const Color(0xFF2563EB), const Color(0xFF00E676),
-      const Color(0xFFFFB300), const Color(0xFF9C27B0),
-      const Color(0xFFF44336), const Color(0xFF00BCD4),
-      const Color(0xFFFF9800),
-    ];
-
-    return Container(
-      height: 250,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF161B22),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 2,
-            child: PieChart(
-              PieChartData(
-                sectionsSpace: 2,
-                centerSpaceRadius: 40,
-                sections: trends.asMap().entries.map((entry) {
-                  return PieChartSectionData(
-                    color: sliceColors[entry.key % sliceColors.length],
-                    value: entry.value.revenue,
-                    title: "", // Hide title inside the pie chart to keep it clean
-                    radius: 30,
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: trends.asMap().entries.map((entry) {
-                // Show up to 7 legends so it doesn't overflow
-                if (entry.key >= 7) return const SizedBox.shrink();
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 6.0),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 12, height: 12,
-                        decoration: BoxDecoration(
-                          color: sliceColors[entry.key % sliceColors.length],
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(entry.value.label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
         ],
       ),
     );

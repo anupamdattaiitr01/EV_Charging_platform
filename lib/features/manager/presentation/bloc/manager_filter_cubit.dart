@@ -1,16 +1,15 @@
-import 'dart:convert';
-import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/models/manager_filter_models.dart';
+import '../../domain/repositories/i_manager_repository.dart';
+import '../../domain/entities/filter_entity.dart';
 
-// --- THE HIERARCHICAL STATE ---
+// --- THE STATE ---
 class ManagerFilterState {
   final bool isLoading;
-  final List<RegionModel> allRegions; // Keeps the nested structure intact
-  final RegionModel? selectedRegion;
-  final StationModel? selectedStation;
-  final GunModel? selectedGun;
+  final List<RegionEntity> allRegions;
+  final RegionEntity? selectedRegion;
+  final StationEntity? selectedStation;
+  final GunEntity? selectedGun;
+  final String? error;
 
   ManagerFilterState({
     this.isLoading = false,
@@ -18,51 +17,46 @@ class ManagerFilterState {
     this.selectedRegion,
     this.selectedStation,
     this.selectedGun,
+    this.error,
   });
 
   ManagerFilterState copyWith({
     bool? isLoading,
-    List<RegionModel>? allRegions,
-    RegionModel? selectedRegion,
-    StationModel? selectedStation,
-    GunModel? selectedGun,
-    bool clearSelection = false, // NEW: Flag to allow safely nullifying selections
+    List<RegionEntity>? allRegions,
+    RegionEntity? selectedRegion,
+    StationEntity? selectedStation,
+    GunEntity? selectedGun,
+    String? error,
+    bool clearSelection = false,
   }) {
     return ManagerFilterState(
       isLoading: isLoading ?? this.isLoading,
       allRegions: allRegions ?? this.allRegions,
-
-      // If clearSelection is true, force these to null. Otherwise, use passed or existing values.
       selectedRegion: clearSelection ? null : (selectedRegion ?? this.selectedRegion),
       selectedStation: clearSelection ? null : (selectedStation ?? this.selectedStation),
       selectedGun: clearSelection ? null : (selectedGun ?? this.selectedGun),
+      error: error,
     );
   }
 }
 
 // --- THE CUBIT ---
 class ManagerFilterCubit extends Cubit<ManagerFilterState> {
-  ManagerFilterCubit() : super(ManagerFilterState());
+  final IManagerRepository _repository;
+
+  ManagerFilterCubit(this._repository) : super(ManagerFilterState());
 
   Future<void> loadFilters() async {
-    emit(state.copyWith(isLoading: true));
+    emit(state.copyWith(isLoading: true, error: null));
     try {
-      final String response = await rootBundle.loadString('assets/data/manager_filters.json');
-      final data = await json.decode(response);
-
-      var regionsList = data['taxonomy'] as List? ?? [];
-      List<RegionModel> regions = regionsList.map((i) => RegionModel.fromJson(i)).toList();
-
-      // No more flattening! Just pass the nested regions directly to the UI.
+      final regions = await _repository.getFilters();
       emit(state.copyWith(isLoading: false, allRegions: regions));
     } catch (e) {
-      emit(state.copyWith(isLoading: false));
-      debugPrint("Error loading JSON taxonomy: $e");
+      emit(state.copyWith(isLoading: false, error: e.toString()));
     }
   }
 
-  // Triggered when the final item (Gun) is clicked in the bottom sheet wizard
-  void selectSelection(RegionModel region, StationModel station, GunModel gun) {
+  void selectSelection(RegionEntity region, StationEntity station, GunEntity gun) {
     emit(state.copyWith(
       selectedRegion: region,
       selectedStation: station,
@@ -70,7 +64,6 @@ class ManagerFilterCubit extends Cubit<ManagerFilterState> {
     ));
   }
 
-  // --- NEW: Added ability to reset the dashboard filters ---
   void clearSelection() {
     emit(state.copyWith(clearSelection: true));
   }

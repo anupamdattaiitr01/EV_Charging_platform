@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import '../../../../core/di/injection_container.dart' as di;
+import '../bloc/profile_cubit.dart';
+
 class UserManualPage extends StatefulWidget {
   const UserManualPage({super.key});
 
@@ -15,8 +18,8 @@ class _UserManualPageState extends State<UserManualPage> {
   @override
   void initState() {
     super.initState();
+    final manualUrl = di.sl<ProfileCubit>().state.manualUrl;
 
-    // Initialize the WebViewController (Modern syntax for webview_flutter ^4.0.0)
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
@@ -28,18 +31,17 @@ class _UserManualPageState extends State<UserManualPage> {
               });
             }
           },
-          // --- NEW: Add this error handler ---
           onWebResourceError: (WebResourceError error) {
-            print("WebView Error: ${error.description}"); // Prints the exact cause to your console
+            debugPrint("WebView Error: ${error.description}");
             if (mounted) {
               setState(() {
-                _isLoading = false; // Kills the spinner even if the page fails
+                _isLoading = false;
               });
             }
           },
         ),
       )
-      ..loadRequest(Uri.parse('https://coolors.co/'));
+      ..loadRequest(Uri.parse(manualUrl));
   }
 
   @override
@@ -54,12 +56,9 @@ class _UserManualPageState extends State<UserManualPage> {
       ),
       body: Stack(
         children: [
-          // Forces the WebView to take up the full screen, ensuring it renders
           Positioned.fill(
             child: WebViewWidget(controller: _controller),
           ),
-
-          // The loading spinner
           if (_isLoading)
             const Center(
               child: CircularProgressIndicator(color: Color(0xFF2563EB)),
